@@ -1,10 +1,4 @@
-# Hydrogen
-The SciBorgs' base repository.
-
-WIP
-
-## Structure
-Our robot code is centered around [Robot.java](src/main/java/org/sciborgs1155/robot/Robot.java)
+Rookie Bot code for the rookies of Sciborgs
 
 ## Dependencies
 - [WPILib](https://docs.wpilib.org/)
