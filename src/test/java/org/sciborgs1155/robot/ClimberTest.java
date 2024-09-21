@@ -27,6 +27,8 @@ public class ClimberTest {
     run(climber.moveToGoal(goal));
     fastForward();
     assertEquals(
-        goal.in(Meters), climber.height().in(Meters), 5E-3); // (BEFORE) 1E-5-tolerance precision! :D 
+        goal.in(Meters),
+        climber.height().in(Meters),
+        5E-3); // (BEFORE) 1E-5-tolerance precision! :D
   }
 }
