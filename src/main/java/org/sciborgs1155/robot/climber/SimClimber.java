@@ -7,8 +7,6 @@ import static edu.wpi.first.units.Units.Volts;
 import static org.sciborgs1155.robot.Constants.PERIOD;
 import static org.sciborgs1155.robot.climber.ClimbConstants.GEARING;
 
-import org.sciborgs1155.robot.climber.ClimbConstants.Sim;
-
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
@@ -17,6 +15,7 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import org.sciborgs1155.robot.climber.ClimbConstants.Sim;
 
 /** SimClimber */
 public class SimClimber implements ClimberIO {

@@ -115,6 +115,5 @@ public class Robot extends CommandRobot implements Logged {
         .onFalse(Commands.run(() -> speedMultiplier = Constants.SLOW_SPEED));
     operator.a().onTrue(climber.moveToGoal(Meters.of(Units.inchesToMeters(24))));
     operator.b().onTrue(climber.moveToGoal(Meters.of(Units.inchesToMeters(12))));
-
   }
 }
