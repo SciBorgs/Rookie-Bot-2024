@@ -1,5 +1,11 @@
 package org.sciborgs1155.robot.climber;
 
+import static edu.wpi.first.units.Units.Meters;
+
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Measure;
+
 public class ClimbConstants {
   public static final double ROTOR_OFFSET = 0.0;
   public static final double POSITION_CONVERSION = 1.0;
@@ -17,4 +23,10 @@ public class ClimbConstants {
 
   public static final double MAX_VELO = 1;
   public static final double MAX_ACCEL = 1;
+
+  public class Sim {
+    public static final Measure<Distance> MAX_HEIGHT = Meters.of(Units.inchesToMeters(36));
+    public static final Measure<Distance> MIN_HEIGHT = Meters.of(0);
+    public static final Measure<Distance> START_HEIGHT = Meters.of(0);
+  }
 }

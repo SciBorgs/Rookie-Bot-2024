@@ -7,6 +7,8 @@ import static edu.wpi.first.units.Units.Volts;
 import static org.sciborgs1155.robot.Constants.PERIOD;
 import static org.sciborgs1155.robot.climber.ClimbConstants.GEARING;
 
+import org.sciborgs1155.robot.climber.ClimbConstants.Sim;
+
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.util.Units;
@@ -25,10 +27,10 @@ public class SimClimber implements ClimberIO {
           LinearSystemId.createElevatorSystem(
               DCMotor.getKrakenX60(2), 2, Units.inchesToMeters(2), GEARING),
           DCMotor.getKrakenX60(2),
-          0,
-          Units.inchesToMeters(36),
+          Sim.MIN_HEIGHT.in(Meters),
+          Sim.MAX_HEIGHT.in(Meters),
           true,
-          0);
+          Sim.START_HEIGHT.in(Meters));
 
   @Override
   public void setVoltage(Measure<Voltage> volts) {
