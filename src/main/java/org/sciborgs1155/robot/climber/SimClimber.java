@@ -23,9 +23,9 @@ public class SimClimber implements ClimberIO {
 
   ElevatorSim sim =
       new ElevatorSim(
-          LinearSystemId.createElevatorSystem(
-              DCMotor.getKrakenX60(2), 2, Units.inchesToMeters(2), GEARING),
-          DCMotor.getKrakenX60(2),
+          LinearSystemId.createElevatorSystem( //TODO get all of the correct constants, change elevator system stuff into constants + re-run sysid
+              DCMotor.getNeoVortex(2), 2, Units.inchesToMeters(2), GEARING),
+          DCMotor.getNeoVortex(2),
           Sim.MIN_HEIGHT.in(Meters),
           Sim.MAX_HEIGHT.in(Meters),
           true,
