@@ -17,4 +17,9 @@ public final class Ports {
     public static final int FRONT_RIGHT_TURNING = 16;
     public static final int REAR_RIGHT_TURNING = 17;
   }
+
+  public static final class Climber {
+    public static final int talonID = 0;
+    public static final int followerID = 1;
+  }
 }

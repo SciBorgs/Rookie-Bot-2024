@@ -10,6 +10,7 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Robot/autos": "String Chooser",
+      "/Robot/climber/pid": "ProfiledPIDController",
       "/Robot/drive/field2d": "Field2d",
       "/Robot/drive/frontLeft/driveFeedback": "PIDController",
       "/Robot/drive/frontLeft/turnFeedback": "PIDController",
@@ -19,6 +20,11 @@
       "/Robot/drive/rearLeft/turnFeedback": "PIDController",
       "/Robot/drive/rearRight/driveFeedback": "PIDController",
       "/Robot/drive/rearRight/turnFeedback": "PIDController",
+      "/SmartDashboard/climber dynamic-back": "Command",
+      "/SmartDashboard/climber dynamic-forward": "Command",
+      "/SmartDashboard/climber quasistatic-back": "Command",
+      "/SmartDashboard/climber quasistatic-forward": "Command",
+      "/SmartDashboard/climber-sysid test": "Command",
       "/SmartDashboard/drive dynamic backward": "Command",
       "/SmartDashboard/drive dynamic forward": "Command",
       "/SmartDashboard/drive quasistatic backward": "Command",
@@ -46,6 +52,31 @@
           "visible": true
         }
       },
+      "/SmartDashboard/climber dynamic-back": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/climber dynamic-forward": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/climber quasistatic-back": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/climber quasistatic-forward": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/climber-sysid test": {
+        "window": {
+          "visible": true
+        }
+      },
       "/SmartDashboard/drive dynamic forward": {
         "window": {
           "visible": true
@@ -61,6 +92,15 @@
   "NetworkTables": {
     "transitory": {
       "Robot": {
+        "climber": {
+          "ElevatorFeedforward##v_/Robot/climber/ff": {
+            "open": true
+          },
+          "open": true,
+          "pid": {
+            "open": true
+          }
+        },
         "drive": {
           "Pose2d##v_/Robot/drive/getPose": {
             "Rotation2d##v_rotation": {
@@ -82,8 +122,7 @@
               "open": true
             },
             "open": true
-          },
-          "open": true
+          }
         },
         "open": true
       },
@@ -94,5 +133,40 @@
   },
   "NetworkTables Info": {
     "visible": true
+  },
+  "Plot": {
+    "Plot <0>": {
+      "plots": [
+        {
+          "backgroundColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.8500000238418579
+          ],
+          "height": 338,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/Robot/climber/pid/goal"
+            },
+            {
+              "color": [
+                0.8666667342185974,
+                0.5176470875740051,
+                0.32156863808631897,
+                1.0
+              ],
+              "id": "NT:/Robot/climber/position"
+            }
+          ]
+        }
+      ]
+    }
   }
 }
