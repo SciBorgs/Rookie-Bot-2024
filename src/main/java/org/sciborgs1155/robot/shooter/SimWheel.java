@@ -1,5 +1,3 @@
 package org.sciborgs1155.robot.shooter;
 
-public class SimWheel {
-    
-}
+public class SimWheel {}
