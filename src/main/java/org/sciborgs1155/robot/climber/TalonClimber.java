@@ -19,14 +19,14 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 
-public class RealClimber implements ClimberIO {
+public class TalonClimber implements ClimberIO {
 
   private TalonFX talon = new TalonFX(talonID);
   private TalonFX follower = new TalonFX(followerID);
   private TalonFXConfigurator configurator;
   private TalonFXConfiguration config = new TalonFXConfiguration();
 
-  public RealClimber() {
+  public TalonClimber() {
     configurator = talon.getConfigurator();
 
     // check over whether all of this is correct
