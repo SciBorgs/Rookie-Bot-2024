@@ -11,22 +11,11 @@
       "/FMSInfo": "FMSInfo",
       "/Robot/autos": "String Chooser",
       "/Robot/drive/field2d": "Field2d",
-      "/Robot/drive/frontLeft/driveFeedback": "PIDController",
-      "/Robot/drive/frontLeft/turnFeedback": "PIDController",
-      "/Robot/drive/frontRight/driveFeedback": "PIDController",
-      "/Robot/drive/frontRight/turnFeedback": "PIDController",
-      "/Robot/drive/rearLeft/driveFeedback": "PIDController",
-      "/Robot/drive/rearLeft/turnFeedback": "PIDController",
-      "/Robot/drive/rearRight/driveFeedback": "PIDController",
-      "/Robot/drive/rearRight/turnFeedback": "PIDController",
-      "/SmartDashboard/drive dynamic backward": "Command",
-      "/SmartDashboard/drive dynamic forward": "Command",
-      "/SmartDashboard/drive quasistatic backward": "Command",
-      "/SmartDashboard/drive quasistatic forward": "Command",
-      "/SmartDashboard/turn dynamic backward": "Command",
-      "/SmartDashboard/turn dynamic forward": "Command",
-      "/SmartDashboard/turn quasistatic backward": "Command",
-      "/SmartDashboard/turn quasistatic forward": "Command"
+      "/SmartDashboard/DrivePID": "ProfiledPIDController",
+      "/SmartDashboard/Drivetrain sim": "Field2d",
+      "/SmartDashboard/ProfiledPIDController[1]": "ProfiledPIDController",
+      "/SmartDashboard/ProfiledPIDController[2]": "ProfiledPIDController",
+      "/SmartDashboard/RotationPID": "ProfiledPIDController"
     },
     "windows": {
       "/Robot/drive/field2d": {
@@ -41,17 +30,9 @@
         },
         "module-RL": {
           "style": "Line"
-        },
-        "window": {
-          "visible": true
         }
       },
-      "/SmartDashboard/drive dynamic forward": {
-        "window": {
-          "visible": true
-        }
-      },
-      "/SmartDashboard/drive quasistatic forward": {
+      "/SmartDashboard/Drivetrain sim": {
         "window": {
           "visible": true
         }
@@ -59,40 +40,30 @@
     }
   },
   "NetworkTables": {
+    "Persistent Values": {
+      "open": false
+    },
+    "Retained Values": {
+      "open": false
+    },
     "transitory": {
-      "Robot": {
-        "drive": {
-          "Pose2d##v_/Robot/drive/getPose": {
-            "Rotation2d##v_rotation": {
-              "open": true
-            },
-            "open": true
-          },
-          "frontRight": {
-            "SwerveModulePosition##v_/Robot/drive/frontRight/position": {
-              "Rotation2d##v_angle": {
-                "open": true
-              },
-              "open": true
-            },
-            "SwerveModuleState##v_/Robot/drive/frontRight/state": {
-              "Rotation2d##v_angle": {
-                "open": true
-              },
-              "open": true
-            },
+      "SmartDashboard": {
+        "Drivetrain sim": {
+          "double[]##v_/SmartDashboard/Drivetrain sim/Robot": {
             "open": true
           },
           "open": true
         },
         "open": true
-      },
-      "Shuffleboard": {
-        "open": true
       }
     }
   },
   "NetworkTables Info": {
-    "visible": true
+    "Clients": {
+      "open": true
+    }
+  },
+  "NetworkTables View": {
+    "visible": false
   }
 }

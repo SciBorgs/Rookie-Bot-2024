@@ -8,6 +8,7 @@ import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -31,6 +32,13 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
   default void setVoltage(double volts) {
     CommandScheduler.getInstance().schedule(setVoltage(Volts.of(volts)));
   }
+
+  /**
+   * Returns simulated instance of one wheel of a tank module.
+   * 
+   * @return sim module.
+   */
+  public DCMotorSim getMotorSim();
 
   /**
    * Returns the distance the wheel traveled.
@@ -77,6 +85,11 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
     @Override
     public String getName() {
       return "Non-existent Module";
+    }
+
+    @Override
+    public DCMotorSim getMotorSim() {
+      return null;
     }
 
     @Override
