@@ -72,9 +72,7 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
     }
 
     @Override
-    public void resetEncoders() {
-
-    }
+    public void resetEncoders() {}
 
     @Override
     public String getName() {
@@ -85,6 +83,5 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
     public void close() throws Exception {
       this.close();
     }
-
   }
 }

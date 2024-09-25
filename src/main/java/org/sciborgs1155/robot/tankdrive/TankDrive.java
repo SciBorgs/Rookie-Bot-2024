@@ -13,12 +13,6 @@ import static org.sciborgs1155.robot.tankdrive.DriveConstants.DRIVE_CONSTRAINTS;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.ROTATION_CONSTRAINTS;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.distanceToAngle;
 
-import org.sciborgs1155.robot.Robot;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.DriveFFD;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.DrivePID;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationFFD;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationPID;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -35,151 +29,165 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import monologue.Logged;
+import org.sciborgs1155.robot.Robot;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.DriveFFD;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.DrivePID;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationFFD;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationPID;
 
 public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
-    /** Left side of the drivetrain. */
-    private TankModuleIO left;
+  /** Left side of the drivetrain. */
+  private TankModuleIO left;
 
-    /** Right side of the drivetrain. */
-    private TankModuleIO right;
+  /** Right side of the drivetrain. */
+  private TankModuleIO right;
 
-    /** Handles Joystick input. */
-    private DifferentialDrive inputHandler;
+  /** Handles Joystick input. */
+  private DifferentialDrive inputHandler;
 
-    /** "Gyroscope" used to track rotation for odometry measurements. */
-    private Rotation2d fakeGyro;
+  /** "Gyroscope" used to track rotation for odometry measurements. */
+  private Rotation2d fakeGyro;
 
-    /** Used for tracking robot position. */
-    private DifferentialDriveOdometry odometry;
+  /** Used for tracking robot position. */
+  private DifferentialDriveOdometry odometry;
 
-    // Used for odometry.
-    private Measure<Distance> lastDistance;
+  // Used for odometry.
+  private Measure<Distance> lastDistance;
 
-    /** PID controller for driving(linear error -> linear velocity). */
-    private ProfiledPIDController drivePID = new ProfiledPIDController(DrivePID.P, DrivePID.I, DrivePID.D,
-            DRIVE_CONSTRAINTS);
+  /** PID controller for driving(linear error -> linear velocity). */
+  private ProfiledPIDController drivePID =
+      new ProfiledPIDController(DrivePID.P, DrivePID.I, DrivePID.D, DRIVE_CONSTRAINTS);
 
-    /** PID controller for rotating(angular error -> angular velocity). */
-    private ProfiledPIDController rotationPID = new ProfiledPIDController(RotationPID.P, RotationPID.I, RotationPID.D,
-            ROTATION_CONSTRAINTS);
+  /** PID controller for rotating(angular error -> angular velocity). */
+  private ProfiledPIDController rotationPID =
+      new ProfiledPIDController(RotationPID.P, RotationPID.I, RotationPID.D, ROTATION_CONSTRAINTS);
 
-    /** FFD controller for all driving(linear velocity -> voltage). */
-    private SimpleMotorFeedforward driveFFD = new SimpleMotorFeedforward(DriveFFD.S, DriveFFD.V, DriveFFD.A);
+  /** FFD controller for all driving(linear velocity -> voltage). */
+  private SimpleMotorFeedforward driveFFD =
+      new SimpleMotorFeedforward(DriveFFD.S, DriveFFD.V, DriveFFD.A);
 
-    /** FFD controller for all rotating(angular velocity -> voltage). */
-    private SimpleMotorFeedforward rotationFFD = new SimpleMotorFeedforward(RotationFFD.S, RotationFFD.V,
-            RotationFFD.A);
+  /** FFD controller for all rotating(angular velocity -> voltage). */
+  private SimpleMotorFeedforward rotationFFD =
+      new SimpleMotorFeedforward(RotationFFD.S, RotationFFD.V, RotationFFD.A);
 
-    /**
-     * Creates an instance of tankdrive depending on if the robot is real or not.
-     * 
-     * @return T A N K.
-     */
-    public static TankDrive create() {
-        if (Robot.isReal()) {
-            return new TankDrive(
-                    SparkModule.create(FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE, "Left Module"),
-                    SparkModule.create(FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE, "Right Module"));
-        }
-        if (!Robot.isReal()) {
-            return new TankDrive(SimModule.create("Left Module"), SimModule.create("Right Module"));
-        }
-
-        return null;
+  /**
+   * Creates an instance of tankdrive depending on if the robot is real or not.
+   *
+   * @return T A N K.
+   */
+  public static TankDrive create() {
+    if (Robot.isReal()) {
+      return new TankDrive(
+          SparkModule.create(FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE, "Left Module"),
+          SparkModule.create(FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE, "Right Module"));
+    }
+    if (!Robot.isReal()) {
+      return new TankDrive(SimModule.create("Left Module"), SimModule.create("Right Module"));
     }
 
-    private TankDrive(TankModuleIO left, TankModuleIO right) {
-        // Instantiation.
-        this.left = left;
-        this.right = right;
-        inputHandler = new DifferentialDrive(left::setVoltage, right::setVoltage);
+    return null;
+  }
 
-        // Scales output to voltage.
-        inputHandler.setMaxOutput(DriveConstants.MAX_VOLTAGE.in(Volts));
-    }
+  private TankDrive(TankModuleIO left, TankModuleIO right) {
+    // Instantiation.
+    this.left = left;
+    this.right = right;
+    inputHandler = new DifferentialDrive(left::setVoltage, right::setVoltage);
 
-    /**
-     * Updates the power of the motors based on an arbitrary power value.
-     * 
-     * @param leftInput  : Power of left from [-1.0,1.0].
-     * @param rightInput : Power of right from [-1.0,1.0].
-     * @return Command.
-     */
-    public Command input(double leftInput, double rightInput) {
-        return runOnce(() -> inputHandler.tankDrive(leftInput, rightInput));
-    }
+    // Scales output to voltage.
+    inputHandler.setMaxOutput(DriveConstants.MAX_VOLTAGE.in(Volts));
+  }
 
-    /**
-     * Drives a certain distance.
-     * 
-     * @param distance : Distance.
-     * @return Command.
-     */
-    public Command drive(Measure<Distance> distance) {
-        // The goal end pose of the robot after the command has been ran.
-        Translation2d goalPose = odometry.getPoseMeters()
-                .transformBy(new Transform2d(Meters.of(0), distance, odometry.getPoseMeters().getRotation()))
-                .getTranslation();
+  /**
+   * Updates the power of the motors based on an arbitrary power value.
+   *
+   * @param leftInput : Power of left from [-1.0,1.0].
+   * @param rightInput : Power of right from [-1.0,1.0].
+   * @return Command.
+   */
+  public Command input(double leftInput, double rightInput) {
+    return runOnce(() -> inputHandler.tankDrive(leftInput, rightInput));
+  }
 
-        // The PID measurement.
-        Measure<Distance> distanceFromGoal = Meters
-                .of(odometry.getPoseMeters().getTranslation().getDistance(goalPose));
+  /**
+   * Drives a certain distance.
+   *
+   * @param distance : Distance.
+   * @return Command.
+   */
+  public Command drive(Measure<Distance> distance) {
+    // The goal end pose of the robot after the command has been ran.
+    Translation2d goalPose =
+        odometry
+            .getPoseMeters()
+            .transformBy(
+                new Transform2d(Meters.of(0), distance, odometry.getPoseMeters().getRotation()))
+            .getTranslation();
 
-        return run(() -> {
-            Measure<Velocity<Distance>> pidOutput = MetersPerSecond
-                    .of(drivePID.calculate(distanceFromGoal.in(Meters), 0));
-            Measure<Voltage> ffdOuput = Volts.of(driveFFD.calculate(pidOutput.in(MetersPerSecond)));
+    // The PID measurement.
+    Measure<Distance> distanceFromGoal =
+        Meters.of(odometry.getPoseMeters().getTranslation().getDistance(goalPose));
 
-            CommandScheduler.getInstance().schedule(left.setVoltage(ffdOuput).alongWith(right.setVoltage(ffdOuput)));
+    return run(
+        () -> {
+          Measure<Velocity<Distance>> pidOutput =
+              MetersPerSecond.of(drivePID.calculate(distanceFromGoal.in(Meters), 0));
+          Measure<Voltage> ffdOuput = Volts.of(driveFFD.calculate(pidOutput.in(MetersPerSecond)));
+
+          CommandScheduler.getInstance()
+              .schedule(left.setVoltage(ffdOuput).alongWith(right.setVoltage(ffdOuput)));
         });
-    }
+  }
 
-    /**
-     * Turns a certain angle.
-     * 
-     * @param angle : Angle
-     * @return Command.
-     */
-    public Command rotate(Measure<Angle> angle) {
-        return rotateTo(angle.plus(Radians.of(odometry.getPoseMeters().getRotation().getRadians())));
-    }
+  /**
+   * Turns a certain angle.
+   *
+   * @param angle : Angle
+   * @return Command.
+   */
+  public Command rotate(Measure<Angle> angle) {
+    return rotateTo(angle.plus(Radians.of(odometry.getPoseMeters().getRotation().getRadians())));
+  }
 
-    /**
-     * Turns to a certain orientation.
-     * 
-     * @param angle : Angle
-     * @return Command.
-     */
-    public Command rotateTo(Measure<Angle> angle) {
-        // The goal end pose of the robot after the command has been ran.
-        Rotation2d goalPose = Rotation2d.fromRadians(angle.in(Radians));
+  /**
+   * Turns to a certain orientation.
+   *
+   * @param angle : Angle
+   * @return Command.
+   */
+  public Command rotateTo(Measure<Angle> angle) {
+    // The goal end pose of the robot after the command has been ran.
+    Rotation2d goalPose = Rotation2d.fromRadians(angle.in(Radians));
 
-        // The PID measurement.
-        Measure<Angle> distanceFromGoal = Radians
-                .of(odometry.getPoseMeters().getRotation().minus(goalPose).getRadians());
+    // The PID measurement.
+    Measure<Angle> distanceFromGoal =
+        Radians.of(odometry.getPoseMeters().getRotation().minus(goalPose).getRadians());
 
-        return run(() -> {
-            Measure<Velocity<Angle>> pidOutput = RadiansPerSecond
-                    .of(rotationPID.calculate(distanceFromGoal.in(Radians), 0));
-            Measure<Voltage> ffdOuput = Volts.of(rotationFFD.calculate(pidOutput.in(RadiansPerSecond)));
+    return run(
+        () -> {
+          Measure<Velocity<Angle>> pidOutput =
+              RadiansPerSecond.of(rotationPID.calculate(distanceFromGoal.in(Radians), 0));
+          Measure<Voltage> ffdOuput =
+              Volts.of(rotationFFD.calculate(pidOutput.in(RadiansPerSecond)));
 
-            Measure<Distance> deltaD = right.getPosition().minus(lastDistance);
+          Measure<Distance> deltaD = right.getPosition().minus(lastDistance);
 
-            fakeGyro = fakeGyro.plus(Rotation2d.fromRadians(distanceToAngle(deltaD).in(Radians)));
-            lastDistance = right.getPosition();
+          fakeGyro = fakeGyro.plus(Rotation2d.fromRadians(distanceToAngle(deltaD).in(Radians)));
+          lastDistance = right.getPosition();
 
-            CommandScheduler.getInstance().schedule(left.setVoltage(ffdOuput).alongWith(right.setVoltage(ffdOuput)));
+          CommandScheduler.getInstance()
+              .schedule(left.setVoltage(ffdOuput).alongWith(right.setVoltage(ffdOuput)));
         });
-    }
+  }
 
-    @Override
-    public void periodic() {
-        odometry.update(fakeGyro, left.getVelocity().in(MetersPerSecond), right.getVelocity().in(MetersPerSecond));
-    }
+  @Override
+  public void periodic() {
+    odometry.update(
+        fakeGyro, left.getVelocity().in(MetersPerSecond), right.getVelocity().in(MetersPerSecond));
+  }
 
-    @Override
-    public void close() throws Exception {
-        this.close();
-    }
-
+  @Override
+  public void close() throws Exception {
+    this.close();
+  }
 }
