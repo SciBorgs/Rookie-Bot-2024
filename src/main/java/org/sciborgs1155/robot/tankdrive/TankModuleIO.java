@@ -35,7 +35,7 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
 
   /**
    * Returns simulated instance of one wheel of a tank module.
-   * 
+   *
    * @return sim module.
    */
   public DCMotorSim getMotorSim();

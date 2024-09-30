@@ -20,25 +20,27 @@ public class SimModule implements TankModuleIO {
   private String name = "SimModule";
 
   /** Front Motor Simulation. */
-  private final DCMotorSim frontMotor = new DCMotorSim(
-      LinearSystemId.createDCMotorSystem(SimConstants.VELOCITY_GAIN, SimConstants.ACCELERATION),
-      DCMotor.getNeoVortex(1),
-      SimConstants.GEARING);
+  private final DCMotorSim frontMotor =
+      new DCMotorSim(
+          LinearSystemId.createDCMotorSystem(SimConstants.VELOCITY_GAIN, SimConstants.ACCELERATION),
+          DCMotor.getNeoVortex(1),
+          SimConstants.GEARING);
 
   /** Rear Motor Simulation. */
-  private final DCMotorSim rearMotor = new DCMotorSim(
-      LinearSystemId.createDCMotorSystem(SimConstants.VELOCITY_GAIN, SimConstants.ACCELERATION),
-      DCMotor.getNeoVortex(1),
-      SimConstants.GEARING);
+  private final DCMotorSim rearMotor =
+      new DCMotorSim(
+          LinearSystemId.createDCMotorSystem(SimConstants.VELOCITY_GAIN, SimConstants.ACCELERATION),
+          DCMotor.getNeoVortex(1),
+          SimConstants.GEARING);
 
   @Override
   public Command setVoltage(Measure<Voltage> voltage) {
     return Commands.runOnce(
-        () -> {
-          frontMotor.setInputVoltage(voltage.in(Volts));
-          rearMotor.setInputVoltage(voltage.in(Volts));
-        },
-        this)
+            () -> {
+              frontMotor.setInputVoltage(voltage.in(Volts));
+              rearMotor.setInputVoltage(voltage.in(Volts));
+            },
+            this)
         .andThen(Commands.idle(this));
   }
 

@@ -73,18 +73,20 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   private Field2d simfield;
 
   /** PID controller for driving(linear error -> linear velocity). */
-  private ProfiledPIDController drivePID = new ProfiledPIDController(DrivePID.P, DrivePID.I, DrivePID.D,
-      DRIVE_CONSTRAINTS);
+  private ProfiledPIDController drivePID =
+      new ProfiledPIDController(DrivePID.P, DrivePID.I, DrivePID.D, DRIVE_CONSTRAINTS);
 
   /** PID controller for rotating(angular error -> angular velocity). */
-  private ProfiledPIDController rotationPID = new ProfiledPIDController(RotationPID.P, RotationPID.I, RotationPID.D,
-      ROTATION_CONSTRAINTS);
+  private ProfiledPIDController rotationPID =
+      new ProfiledPIDController(RotationPID.P, RotationPID.I, RotationPID.D, ROTATION_CONSTRAINTS);
 
   /** FFD controller for all driving(linear velocity -> voltage). */
-  private SimpleMotorFeedforward driveFFD = new SimpleMotorFeedforward(DriveFFD.S, DriveFFD.V, DriveFFD.A);
+  private SimpleMotorFeedforward driveFFD =
+      new SimpleMotorFeedforward(DriveFFD.S, DriveFFD.V, DriveFFD.A);
 
   /** FFD controller for all rotating(angular velocity -> voltage). */
-  private SimpleMotorFeedforward rotationFFD = new SimpleMotorFeedforward(RotationFFD.S, RotationFFD.V, RotationFFD.A);
+  private SimpleMotorFeedforward rotationFFD =
+      new SimpleMotorFeedforward(RotationFFD.S, RotationFFD.V, RotationFFD.A);
 
   /**
    * Creates an instance of tankdrive depending on if the robot is real or not.
@@ -114,14 +116,15 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
     inputHandler.setMaxOutput(DriveConstants.MAX_VOLTAGE.in(Volts));
 
     // Instantiation of the sim.
-    simulation = new DifferentialDrivetrainSim(
-        DCMotor.getNEO(2), // 2 NEO motors on each side of the drivetrain.
-        SimConstants.GEARING,
-        MOI_MASS.in(Kilograms),
-        ROBOT_MASS.in(Kilograms),
-        WHEEL_RADIUS.in(Meters),
-        TRACK_WIDTH.in(Meters),
-        STD_DEVS);
+    simulation =
+        new DifferentialDrivetrainSim(
+            DCMotor.getNEO(2), // 2 NEO motors on each side of the drivetrain.
+            SimConstants.GEARING,
+            MOI_MASS.in(Kilograms),
+            ROBOT_MASS.in(Kilograms),
+            WHEEL_RADIUS.in(Meters),
+            TRACK_WIDTH.in(Meters),
+            STD_DEVS);
     simfield = new Field2d();
 
     // Adds simulation to dashboard.
@@ -138,7 +141,7 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   /**
    * Updates the power of the motors based on an arbitrary power value(tank).
    *
-   * @param leftInput  : Power, from [-1.0,1.0].
+   * @param leftInput : Power, from [-1.0,1.0].
    * @param rightInput : Power, from [-1.0,1.0].
    * @return Command.
    */
@@ -149,7 +152,7 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   /**
    * Updates the power of the motors based on an arbitrary power value(arcade).
    *
-   * @param drive    : Power, from [-1.0,1.0].
+   * @param drive : Power, from [-1.0,1.0].
    * @param rotation : Power, from [-1.0,1.0].
    * @return Command.
    */
@@ -165,19 +168,21 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
    */
   public Command drive(Measure<Distance> distance) {
     // The goal end pose of the robot after the command has been ran.
-    Translation2d goalPose = odometry
-        .getPoseMeters()
-        .transformBy(
-            new Transform2d(Meters.of(0), distance, odometry.getPoseMeters().getRotation()))
-        .getTranslation();
+    Translation2d goalPose =
+        odometry
+            .getPoseMeters()
+            .transformBy(
+                new Transform2d(Meters.of(0), distance, odometry.getPoseMeters().getRotation()))
+            .getTranslation();
 
     // The PID measurement.
-    Measure<Distance> distanceFromGoal = Meters.of(odometry.getPoseMeters().getTranslation().getDistance(goalPose));
+    Measure<Distance> distanceFromGoal =
+        Meters.of(odometry.getPoseMeters().getTranslation().getDistance(goalPose));
 
     return run(
         () -> {
-          Measure<Velocity<Distance>> pidOutput = MetersPerSecond
-              .of(drivePID.calculate(distanceFromGoal.in(Meters), 0));
+          Measure<Velocity<Distance>> pidOutput =
+              MetersPerSecond.of(drivePID.calculate(distanceFromGoal.in(Meters), 0));
           Measure<Voltage> ffdOuput = Volts.of(driveFFD.calculate(pidOutput.in(MetersPerSecond)));
 
           CommandScheduler.getInstance()
@@ -206,13 +211,15 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
     Rotation2d goalPose = Rotation2d.fromRadians(angle.in(Radians));
 
     // The PID measurement.
-    Measure<Angle> distanceFromGoal = Radians.of(odometry.getPoseMeters().getRotation().minus(goalPose).getRadians());
+    Measure<Angle> distanceFromGoal =
+        Radians.of(odometry.getPoseMeters().getRotation().minus(goalPose).getRadians());
 
     return run(
         () -> {
-          Measure<Velocity<Angle>> pidOutput = RadiansPerSecond
-              .of(rotationPID.calculate(distanceFromGoal.in(Radians), 0));
-          Measure<Voltage> ffdOuput = Volts.of(rotationFFD.calculate(pidOutput.in(RadiansPerSecond)));
+          Measure<Velocity<Angle>> pidOutput =
+              RadiansPerSecond.of(rotationPID.calculate(distanceFromGoal.in(Radians), 0));
+          Measure<Voltage> ffdOuput =
+              Volts.of(rotationFFD.calculate(pidOutput.in(RadiansPerSecond)));
 
           Measure<Distance> deltaD = right.getPosition().minus(lastDistance);
 

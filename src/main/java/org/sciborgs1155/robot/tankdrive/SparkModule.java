@@ -8,7 +8,6 @@ import static edu.wpi.first.units.Units.Volts;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Distance;
@@ -41,11 +40,11 @@ public class SparkModule implements TankModuleIO {
   @Override
   public Command setVoltage(Measure<Voltage> voltage) {
     return Commands.runOnce(
-        () -> {
-          frontMotor.setVoltage(voltage.in(Volts));
-          rearMotor.setVoltage(voltage.in(Volts));
-        },
-        this)
+            () -> {
+              frontMotor.setVoltage(voltage.in(Volts));
+              rearMotor.setVoltage(voltage.in(Volts));
+            },
+            this)
         .andThen(Commands.idle(this));
   }
 
