@@ -68,7 +68,7 @@ public class Climber extends SubsystemBase implements Logged {
   }
 
   public static Climber create() {
-    return Robot.isReal() ? new Climber(new RealClimber()) : new Climber(new SimClimber());
+    return Robot.isReal() ? new Climber(new SparkClimber()) : new Climber(new SimClimber());
   }
 
   public static Climber none() {
