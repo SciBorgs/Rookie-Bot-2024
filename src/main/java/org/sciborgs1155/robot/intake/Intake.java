@@ -8,31 +8,34 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Intake extends SubsystemBase {
-    
-    private IntakeIO hardware;
 
-    private Intake(IntakeIO hardware) {
-        this.hardware = hardware;
-    }
+  private IntakeIO hardware;
 
-    public static Intake create() {
-        return isReal() ? new Intake(new RealIntake()) : new Intake(new SimIntake());
-    }
+  private Intake(IntakeIO hardware) {
+    this.hardware = hardware;
+  }
 
-    public static Intake none() {
-        return new Intake(new NoIntake());
-    } 
+  public static Intake create() {
+    return isReal() ? new Intake(new RealIntake()) : new Intake(new SimIntake());
+  }
 
-    private void setRoller(double speed) {
-        hardware.setRoller(speed);
-    }
-    public Command roller() {
-        return run(() -> setRoller(ROLLER_MAX));
-    }
-    public Command stopRoller() {
-        return run(() -> setRoller(0));
-    }
-    public Command reverseRoller() {
-        return run(() -> setRoller(ROLLER_REVERSE));
-    }
+  public static Intake none() {
+    return new Intake(new NoIntake());
+  }
+
+  private void setRoller(double speed) {
+    hardware.setRoller(speed);
+  }
+
+  public Command roller() {
+    return run(() -> setRoller(ROLLER_MAX));
+  }
+
+  public Command stopRoller() {
+    return run(() -> setRoller(0));
+  }
+
+  public Command reverseRoller() {
+    return run(() -> setRoller(ROLLER_REVERSE));
+  }
 }

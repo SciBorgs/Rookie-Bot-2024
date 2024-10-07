@@ -12,58 +12,67 @@ import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkAbsoluteEncoder.Type;
-
 import edu.wpi.first.math.controller.PIDController;
 
-public class RealIntake implements IntakeIO{
+public class RealIntake implements IntakeIO {
 
-    private final CANSparkMax roller;
-    private final CANSparkMax wrist;
+  private final CANSparkMax roller;
+  private final CANSparkMax wrist;
 
-    private final PIDController wristController = new PIDController(WRISTP, WRISTI, WRISTD);
-    private final AbsoluteEncoder wristEncoder;
+  private final PIDController wristController = new PIDController(WRISTP, WRISTI, WRISTD);
+  private final AbsoluteEncoder wristEncoder;
 
+  public RealIntake() {
+    roller = new CANSparkMax(ROLLER_MOTOR, MotorType.kBrushless);
+    wrist = new CANSparkMax(WRIST_MOTOR, MotorType.kBrushless);
 
-    public RealIntake() {
-        roller = new CANSparkMax(ROLLER_MOTOR, MotorType.kBrushless);
-        wrist = new CANSparkMax(WRIST_MOTOR, MotorType.kBrushless);
-        roller.restoreFactoryDefaults();
-        roller.burnFlash();
-        wrist.restoreFactoryDefaults();
-        wrist.burnFlash();
-        wristController.reset();
-        wristEncoder = wrist.getAbsoluteEncoder(Type.kDutyCycle);
-    }
+    roller.restoreFactoryDefaults();
+    roller.setSmartCurrentLimit(30);
 
-    public void roller() {
-        roller.set(ROLLER_MAX);
-    }
+    roller.burnFlash();
 
-    public void reverse() {
-        roller.set(ROLLER_REVERSE);
-    }
+    wrist.restoreFactoryDefaults();
+    wrist.burnFlash();
 
-    public void stop() {
-        roller.set(0);
-    }
+    wristController.reset();
 
-    @Override
-    public void setRoller(double speed) {
-        roller.set(speed);
-    }
+    wristEncoder = wrist.getAbsoluteEncoder(Type.kDutyCycle);
+  }
 
-    @Override
-    public double getPositon() {
-        return wristEncoder.getPosition();
-    }
+  public void roller() {
+    roller.set(ROLLER_MAX);
+  }
 
-    @Override
-    public double getVelocity() {
-        return wristEncoder.getVelocity();
-    }
+  public void reverse() {
+    roller.set(ROLLER_REVERSE);
+  }
 
-    @Override
-    public void setWrist(double volts) {
-        wrist.setVoltage(volts);
-    }
+  public void stop() {
+    roller.set(0);
+  }
+
+  @Override
+  public void setRoller(double speed) {
+    roller.set(speed);
+  }
+
+  @Override
+  public double getPosition() {
+    return wristEncoder.getPosition();
+  }
+
+  @Override
+  public double getVelocity() {
+    return wristEncoder.getVelocity();
+  }
+
+  @Override
+  public void setWristVoltage(double volts) {
+    wrist.setVoltage(volts);
+  }
+
+  @Override
+  public void updatePosition(double setpoint) {
+    wrist.setVoltage(wristController.calculate(getPosition(), setpoint));
+  }
 }

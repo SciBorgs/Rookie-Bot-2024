@@ -1,10 +1,10 @@
 package org.sciborgs1155.robot;
 
-import org.sciborgs1155.robot.drive.DriveConstants;
+import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Time;
-import static edu.wpi.first.units.Units.Seconds;
+import org.sciborgs1155.robot.drive.DriveConstants;
 
 /**
  * Constants is a globally accessible class for storing immutable values. Every value should be
