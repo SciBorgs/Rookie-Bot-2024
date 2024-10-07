@@ -1,10 +1,10 @@
 package org.sciborgs1155.robot;
 
-import static edu.wpi.first.units.Units.*;
+import org.sciborgs1155.robot.drive.DriveConstants;
 
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Time;
-import org.sciborgs1155.robot.drive.DriveConstants;
+import static edu.wpi.first.units.Units.Seconds;
 
 /**
  * Constants is a globally accessible class for storing immutable values. Every value should be
@@ -23,4 +23,8 @@ public class Constants {
           / DriveConstants.MAX_ANGULAR_SPEED.baseUnitMagnitude();
   public static final double SLOW_SPEED = 0.33;
   public static final double FULL_SPEED = 1.0;
+
+  public static boolean isReal() {
+    return Robot.isReal();
+  }
 }
