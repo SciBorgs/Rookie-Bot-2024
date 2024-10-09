@@ -4,7 +4,6 @@ import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous
 
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -19,9 +18,12 @@ import org.sciborgs1155.robot.commands.Autos;
 import org.sciborgs1155.robot.tankdrive.TankDrive;
 
 /**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
+ * This class is where the bulk of the robot should be declared. Since
+ * Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in
+ * the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of
+ * the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class Robot extends CommandRobot implements Logged {
@@ -29,17 +31,16 @@ public class Robot extends CommandRobot implements Logged {
   // INPUT DEVICES
   @SuppressWarnings("unused")
   private final CommandXboxController operator = new CommandXboxController(OI.OPERATOR);
-
   private final CommandXboxController driver = new CommandXboxController(OI.DRIVER);
-  private final Joystick keyboard = new Joystick(1);
 
   // SUBSYSTEMS
+  @Log.NT
   private final TankDrive drive = TankDrive.create();
+  private double speedMultiplier = Constants.FULL_SPEED;
 
   // COMMANDS
-  @Log.NT private final Autos autos = new Autos();
-
-  @Log.NT private double speedMultiplier = Constants.FULL_SPEED;
+  @Log.NT
+  private final Autos autos = new Autos();
 
   /** The robot contains subsystems, OI devices, and commands. */
   public Robot() {
@@ -65,19 +66,12 @@ public class Robot extends CommandRobot implements Logged {
   }
 
   /**
-   * Configures subsystem default commands. Default commands are scheduled when no other command is
+   * Configures subsystem default commands. Default commands are scheduled when no
+   * other command is
    * running on a subsystem.
    */
   private void configureSubsystemDefaults() {
-    if (Robot.isReal()) {
-      drive.setDefaultCommand(
-          drive.input(driver.getLeftY() * speedMultiplier, driver.getRightY() * speedMultiplier));
-    }
-    if (!Robot.isReal()) {
-      drive.setDefaultCommand(
-          drive.inputArcade(
-              keyboard.getRawAxis(0) * speedMultiplier, keyboard.getRawAxis(1) * speedMultiplier));
-    }
+    drive.setDefaultCommand(drive.inputArcade(() -> -driver.getRawAxis(1) * speedMultiplier, () -> -driver.getRawAxis(0) * speedMultiplier));
   }
 
   /** Configures trigger -> command bindings */

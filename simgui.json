@@ -10,14 +10,16 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Robot/autos": "String Chooser",
-      "/Robot/drive/field2d": "Field2d",
-      "/SmartDashboard/DrivePID": "ProfiledPIDController",
-      "/SmartDashboard/Drivetrain sim": "Field2d",
-      "/SmartDashboard/ProfiledPIDController[1]": "ProfiledPIDController",
-      "/SmartDashboard/ProfiledPIDController[2]": "ProfiledPIDController",
-      "/SmartDashboard/RotationPID": "ProfiledPIDController"
+      "/Robot/drive/odofield": "Field2d",
+      "/Robot/drive/simfield": "Field2d",
+      "/SmartDashboard/TankDrive": "Subsystem"
     },
     "windows": {
+      "/FMSInfo": {
+        "window": {
+          "visible": true
+        }
+      },
       "/Robot/drive/field2d": {
         "module- FL": {
           "style": "Line"
@@ -30,9 +32,22 @@
         },
         "module-RL": {
           "style": "Line"
+        },
+        "window": {
+          "visible": true
         }
       },
-      "/SmartDashboard/Drivetrain sim": {
+      "/Robot/drive/odofield": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/Robot/drive/simfield": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/TankDrive": {
         "window": {
           "visible": true
         }
@@ -46,14 +61,27 @@
     "Retained Values": {
       "open": false
     },
-    "transitory": {
-      "SmartDashboard": {
-        "Drivetrain sim": {
-          "double[]##v_/SmartDashboard/Drivetrain sim/Robot": {
+    "Robot": {
+      "drive": {
+        "open": true,
+        "simfield": {
+          "double[]##v_/Robot/drive/simfield/Robot": {
             "open": true
           },
           "open": true
-        },
+        }
+      },
+      "open": true
+    },
+    "SmartDashboard": {
+      "TankDrive": {
+        "open": true
+      },
+      "open": true
+    },
+    "combined": true,
+    "transitory": {
+      "SmartDashboard": {
         "open": true
       }
     }
@@ -61,7 +89,11 @@
   "NetworkTables Info": {
     "Clients": {
       "open": true
-    }
+    },
+    "Server": {
+      "open": true
+    },
+    "visible": true
   },
   "NetworkTables View": {
     "visible": false

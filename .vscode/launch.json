@@ -9,6 +9,13 @@
       "name": "Main",
       "request": "launch",
       "mainClass": "org.sciborgs1155.robot.Main",
+      "projectName": "Rookie-Bot-2024"
+    },
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
+      "mainClass": "org.sciborgs1155.robot.Main",
       "projectName": "Hydrogen"
     },
     {

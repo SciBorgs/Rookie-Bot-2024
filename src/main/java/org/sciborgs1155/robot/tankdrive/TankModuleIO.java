@@ -4,11 +4,13 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import org.sciborgs1155.robot.tankdrive.DriveConstants.DriveFFD;
+
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -34,13 +36,6 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
   }
 
   /**
-   * Returns simulated instance of one wheel of a tank module.
-   *
-   * @return sim module.
-   */
-  public DCMotorSim getMotorSim();
-
-  /**
    * Returns the distance the wheel traveled.
    *
    * @return The drive encoder position value, in radians.
@@ -48,11 +43,47 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
   public Measure<Distance> getPosition();
 
   /**
+   * Returns the distance the wheel traveled.
+   *
+   * @return The drive encoder position value, in radians.
+   */
+  default double getPositionDouble() {
+    return getPosition().in(Meters);
+  }
+
+  /**
    * Returns the current velocity of the wheel.
    *
-   * @return The drive encoder velocity value, in radians / seconds.
+   * @return The drive encoder velocity value, in meters / seconds.
    */
   public Measure<Velocity<Distance>> getVelocity();
+
+  /**
+   * Returns the current velocity of the wheel.
+   *
+   * @return The drive encoder velocity value, in meters / seconds.
+   */
+  default double getVelocityDouble() {
+    return getVelocity().in(MetersPerSecond);
+  }
+
+  /**
+   * Returns the voltage of the wheel.
+   *
+   * @return The drive encoder position value, in radians.
+   */
+  default Measure<Voltage> getVoltage() {
+    return Volts.of(new SimpleMotorFeedforward(DriveFFD.S, DriveFFD.V, DriveFFD.A).calculate(getVelocityDouble()));
+  }
+
+  /**
+   * Returns the voltage of the wheel.
+   *
+   * @return The drive encoder position value, in radians.
+   */
+  default double getVoltageDouble() {
+    return getVoltage().in(Volts);
+  }
 
   /** Resets all encoders. */
   public void resetEncoders();
@@ -80,16 +111,12 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
     }
 
     @Override
-    public void resetEncoders() {}
+    public void resetEncoders() {
+    }
 
     @Override
     public String getName() {
       return "Non-existent Module";
-    }
-
-    @Override
-    public DCMotorSim getMotorSim() {
-      return null;
     }
 
     @Override

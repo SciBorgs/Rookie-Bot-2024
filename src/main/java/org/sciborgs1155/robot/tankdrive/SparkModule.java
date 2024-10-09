@@ -8,18 +8,14 @@ import static edu.wpi.first.units.Units.Volts;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import org.sciborgs1155.lib.FaultLogger;
 import org.sciborgs1155.robot.Constants;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.SimConstants;
 
 public class SparkModule implements TankModuleIO {
   /** Front motor. */
@@ -40,25 +36,17 @@ public class SparkModule implements TankModuleIO {
   @Override
   public Command setVoltage(Measure<Voltage> voltage) {
     return Commands.runOnce(
-            () -> {
-              frontMotor.setVoltage(voltage.in(Volts));
-              rearMotor.setVoltage(voltage.in(Volts));
-            },
-            this)
-        .andThen(Commands.idle(this));
+        () -> {
+          frontMotor.setVoltage(voltage.in(Volts));
+          rearMotor.setVoltage(voltage.in(Volts));
+        },
+        this)
+        .andThen(Commands.idle(this)).withName("setVoltage(" + voltage.in(Volts) + ")");
   }
 
   @Override
   public Measure<Distance> getPosition() {
     return Meters.of((frontEncoder.getPosition() + rearEncoder.getPosition()) / 2);
-  }
-
-  @Override
-  public DCMotorSim getMotorSim() {
-    return new DCMotorSim(
-        LinearSystemId.createDCMotorSystem(SimConstants.VELOCITY_GAIN, SimConstants.ACCELERATION),
-        DCMotor.getNeoVortex(1),
-        SimConstants.GEARING);
   }
 
   @Override
