@@ -5,18 +5,21 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import org.sciborgs1155.lib.FaultLogger;
+import org.sciborgs1155.robot.Constants;
+
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import org.sciborgs1155.lib.FaultLogger;
-import org.sciborgs1155.robot.Constants;
 
+/** Represents two SparkMaxes on one side of a differential(tank) drivetrain. */
 public class SparkModule implements TankModuleIO {
   /** Front motor. */
   private CANSparkMax frontMotor;
@@ -30,47 +33,42 @@ public class SparkModule implements TankModuleIO {
   /** Rear encoder. */
   private RelativeEncoder rearEncoder;
 
-  /** Name. */
-  private String name;
-
   @Override
   public Command setVoltage(Measure<Voltage> voltage) {
     return Commands.runOnce(
         () -> {
+          // Updates input voltages.
           frontMotor.setVoltage(voltage.in(Volts));
           rearMotor.setVoltage(voltage.in(Volts));
         },
-        this)
-        .andThen(Commands.idle(this)).withName("setVoltage(" + voltage.in(Volts) + ")");
+        this).withName("setVoltage(" + voltage.in(Volts) + ")").andThen(Commands.idle(this));
   }
 
   @Override
-  public Measure<Distance> getPosition() {
+  public Measure<Distance> getDisplacement() {
+    // Averages displacements of both motors.
     return Meters.of((frontEncoder.getPosition() + rearEncoder.getPosition()) / 2);
   }
 
   @Override
   public Measure<Velocity<Distance>> getVelocity() {
+    // Averages velocities of both motors.
     return MetersPerSecond.of((frontEncoder.getVelocity() + rearEncoder.getVelocity()) / 2);
   }
 
   @Override
   public void resetEncoders() {
+    // Resets displacement measurements.
     frontEncoder.setPosition(0);
     rearEncoder.setPosition(0);
   }
 
-  @Override
-  public String getName() {
-    return name;
-  }
-
   /** Creates an instance of a Sim Module. */
-  public static TankModuleIO create(int frontMotorID, int rearMotorID, String name) {
-    return new SparkModule(frontMotorID, rearMotorID, name);
+  public static TankModuleIO create(int frontMotorID, int rearMotorID) {
+    return new SparkModule(frontMotorID, rearMotorID);
   }
 
-  private SparkModule(int frontMotorID, int rearMotorID, String name) {
+  private SparkModule(int frontMotorID, int rearMotorID) {
     // Instantiates motors and encoders.
     this.frontMotor = new CANSparkMax(frontMotorID, MotorType.kBrushless);
     this.frontEncoder = frontMotor.getEncoder();
@@ -82,16 +80,12 @@ public class SparkModule implements TankModuleIO {
     this.frontEncoder.setMeasurementPeriod((int) Constants.PERIOD.in(Seconds));
     this.rearEncoder.setMeasurementPeriod((int) Constants.PERIOD.in(Seconds));
 
-    // Converts rotations and rotations per second into meters and meters per
-    // second.
+    // Converts rotations and rotations per second into meters and meters/second.
     this.frontEncoder.setVelocityConversionFactor(DriveConstants.WHEEL_RADIUS.in(Meters));
     this.frontEncoder.setVelocityConversionFactor(DriveConstants.WHEEL_RADIUS.in(Meters));
 
     this.frontEncoder.setPositionConversionFactor(DriveConstants.WHEEL_RADIUS.in(Meters));
     this.frontEncoder.setPositionConversionFactor(DriveConstants.WHEEL_RADIUS.in(Meters));
-
-    // Instantiates name.
-    this.name = name;
 
     // Logs faults.
     FaultLogger.register(frontMotor);

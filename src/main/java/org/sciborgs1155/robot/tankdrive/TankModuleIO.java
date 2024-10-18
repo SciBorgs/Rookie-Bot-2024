@@ -4,9 +4,6 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import org.sciborgs1155.robot.tankdrive.DriveConstants.DriveFFD;
-
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
@@ -17,79 +14,58 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import monologue.Logged;
 
-/** Generalized hardware internals for a swerve module */
+/** Represents two motors on one side of a differential(tank) drivetrain. */
 public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
   /**
-   * Sets the drive voltage of the module.
-   *
-   * @param voltage : The voltage to inputted into the drive motor.
+   * Sets the voltage of both of the motors in the module.
+   * 
+   * @param voltage : Voltage.
    */
   public Command setVoltage(Measure<Voltage> voltage);
 
   /**
-   * Sets the drive voltage of the module.
+   * Sets the voltage of both of the motors in the module.
    *
-   * @param voltage : Voltage in volts.
+   * @param volts : Voltage(volts).
    */
   default void setVoltage(double volts) {
     CommandScheduler.getInstance().schedule(setVoltage(Volts.of(volts)));
   }
 
   /**
-   * Returns the distance the wheel traveled.
+   * Returns the net displacement that the module has traveled.
    *
-   * @return The drive encoder position value, in radians.
+   * @return Displacement.
    */
-  public Measure<Distance> getPosition();
+  public Measure<Distance> getDisplacement();
 
   /**
-   * Returns the distance the wheel traveled.
+   * Returns the net displacement that the module has traveled.
    *
-   * @return The drive encoder position value, in radians.
+   * @return Displacement(Meters).
    */
-  default double getPositionDouble() {
-    return getPosition().in(Meters);
+  default double getDisplacementDouble() {
+    return getDisplacement().in(Meters);
   }
 
   /**
-   * Returns the current velocity of the wheel.
+   * Returns the current velocity of the module.
    *
-   * @return The drive encoder velocity value, in meters / seconds.
+   * @return Velocity.
    */
   public Measure<Velocity<Distance>> getVelocity();
 
   /**
-   * Returns the current velocity of the wheel.
+   * Returns the current velocity of the module.
    *
-   * @return The drive encoder velocity value, in meters / seconds.
+   * @return Velocity(Meters per second).
    */
   default double getVelocityDouble() {
     return getVelocity().in(MetersPerSecond);
   }
 
-  /**
-   * Returns the voltage of the wheel.
-   *
-   * @return The drive encoder position value, in radians.
-   */
-  default Measure<Voltage> getVoltage() {
-    return Volts.of(new SimpleMotorFeedforward(DriveFFD.S, DriveFFD.V, DriveFFD.A).calculate(getVelocityDouble()));
-  }
-
-  /**
-   * Returns the voltage of the wheel.
-   *
-   * @return The drive encoder position value, in radians.
-   */
-  default double getVoltageDouble() {
-    return getVoltage().in(Volts);
-  }
-
-  /** Resets all encoders. */
+  /** Resets displacement measurement. */
   public void resetEncoders();
-
-  /** Returns the name of this module(Format: Type-XX) */
-  public String getName();
 
   @Override
   public void close() throws Exception;
@@ -101,7 +77,7 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
     }
 
     @Override
-    public Measure<Distance> getPosition() {
+    public Measure<Distance> getDisplacement() {
       return Meters.of(0);
     }
 
@@ -114,9 +90,8 @@ public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
     public void resetEncoders() {
     }
 
-    @Override
-    public String getName() {
-      return "Non-existent Module";
+    public static TankModuleIO create() {
+      return new NoModule();
     }
 
     @Override

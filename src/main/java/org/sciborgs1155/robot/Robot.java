@@ -1,15 +1,20 @@
 package org.sciborgs1155.robot;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous;
+import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.teleop;
 
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ProxyCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import monologue.Annotations.Log;
 import monologue.Logged;
 import monologue.Monologue;
+
+import static org.sciborgs1155.robot.Constants.PERIOD;
+
 import org.littletonrobotics.urcl.URCL;
 import org.sciborgs1155.lib.CommandRobot;
 import org.sciborgs1155.lib.FaultLogger;
@@ -36,7 +41,6 @@ public class Robot extends CommandRobot implements Logged {
   // SUBSYSTEMS
   @Log.NT
   private final TankDrive drive = TankDrive.create();
-  private double speedMultiplier = Constants.FULL_SPEED;
 
   // COMMANDS
   @Log.NT
@@ -54,14 +58,14 @@ public class Robot extends CommandRobot implements Logged {
     // Configure logging with DataLogManager, Monologue, FailureManagement, and URCL
     DataLogManager.start();
     Monologue.setupMonologue(this, "/Robot", false, true);
-    addPeriodic(Monologue::updateAll, kDefaultPeriod);
+    addPeriodic(Monologue::updateAll, PERIOD.in(Seconds));
     FaultLogger.setupLogging();
-    addPeriodic(FaultLogger::update, 1);
-
+    addPeriodic(FaultLogger::update, PERIOD.in(Seconds));
+    if (!isReal()) {
+      DriverStation.silenceJoystickConnectionWarning(true);
+    }
     if (isReal()) {
       URCL.start();
-    } else {
-      DriverStation.silenceJoystickConnectionWarning(true);
     }
   }
 
@@ -71,18 +75,33 @@ public class Robot extends CommandRobot implements Logged {
    * running on a subsystem.
    */
   private void configureSubsystemDefaults() {
-    drive.setDefaultCommand(drive.inputArcade(() -> -driver.getRawAxis(1) * speedMultiplier, () -> -driver.getRawAxis(0) * speedMultiplier));
+
   }
 
   /** Configures trigger -> command bindings */
   private void configureBindings() {
-    autonomous().whileTrue(new ProxyCommand(autos::get));
+
+    teleop().onTrue(Commands.runOnce(() -> {
+      drive.setDefaultCommand(drive.inputArcade(() -> driver.getRawAxis(1),
+          () -> driver.getRawAxis(0)));
+      System.out.println("Enabled Teleop Drive!");
+    }));
+
+    teleop().onFalse(Commands.runOnce(() -> {
+      drive.resetDefaultCommand();
+      System.out.println("Disabled Teleop Drive!");
+    }));
+
+    autonomous().onTrue(drive.drive(Meters.of(5)).beforeStarting(() -> {
+      drive.removeDefaultCommand();
+    }));
+
     FaultLogger.onFailing(f -> Commands.print(f.toString()));
 
     driver
         .leftBumper()
         .or(driver.rightBumper())
-        .onTrue(Commands.runOnce(() -> speedMultiplier = Constants.FULL_SPEED))
-        .onFalse(Commands.run(() -> speedMultiplier = Constants.SLOW_SPEED));
+        .onTrue(Commands.runOnce(() -> drive.speedMultiplier = Constants.FULL_SPEED))
+        .onFalse(Commands.run(() -> drive.speedMultiplier = Constants.SLOW_SPEED));
   }
 }

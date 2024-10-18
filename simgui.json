@@ -4,14 +4,22 @@
       "window": {
         "visible": false
       }
+    },
+    "RoboRIO": {
+      "RoboRIO Input": {
+        "open": true
+      }
     }
   },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Robot/autos": "String Chooser",
+      "/Robot/drive/drivePID": "ProfiledPIDController",
       "/Robot/drive/odofield": "Field2d",
+      "/Robot/drive/rotationPID": "ProfiledPIDController",
       "/Robot/drive/simfield": "Field2d",
+      "/SmartDashboard/DrivePID": "ProfiledPIDController",
       "/SmartDashboard/TankDrive": "Subsystem"
     },
     "windows": {
@@ -46,15 +54,16 @@
         "window": {
           "visible": true
         }
-      },
-      "/SmartDashboard/TankDrive": {
-        "window": {
-          "visible": true
-        }
       }
     }
   },
   "NetworkTables": {
+    "LiveWindow": {
+      ".status": {
+        "open": true
+      },
+      "open": true
+    },
     "Persistent Values": {
       "open": false
     },
@@ -63,20 +72,15 @@
     },
     "Robot": {
       "drive": {
-        "open": true,
         "simfield": {
           "double[]##v_/Robot/drive/simfield/Robot": {
             "open": true
-          },
-          "open": true
+          }
         }
       },
       "open": true
     },
     "SmartDashboard": {
-      "TankDrive": {
-        "open": true
-      },
       "open": true
     },
     "combined": true,

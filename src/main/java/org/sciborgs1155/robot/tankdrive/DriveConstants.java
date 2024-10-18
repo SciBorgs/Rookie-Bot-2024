@@ -42,7 +42,7 @@ public final class DriveConstants {
   public static final Measure<Velocity<Velocity<Angle>>> MAX_ANGULAR_ACCEL = RadiansPerSecond.per(Second)
       .of(2 * Math.PI);
 
-  /** Distance between centers of right and left wheels on robot */
+  /** Distance between right and left wheels on robot */
   public static final Measure<Distance> TRACK_WIDTH = Meters.of(0.5715);
 
   /** Distance between front and back wheels on robot */
@@ -53,23 +53,22 @@ public final class DriveConstants {
 
   /** Positions of the modules relative to the orgin of the robot. */
   public static final Translation2d[] MODULE_OFFSET = {
-      new Translation2d(WHEEL_BASE.divide(2), TRACK_WIDTH.divide(2)), // front
-      // left
-      new Translation2d(WHEEL_BASE.divide(2), TRACK_WIDTH.divide(-2)), // front right
-      new Translation2d(WHEEL_BASE.divide(-2), TRACK_WIDTH.divide(2)), // rear left
-      new Translation2d(WHEEL_BASE.divide(-2), TRACK_WIDTH.divide(-2)) // rear right
+      new Translation2d(WHEEL_BASE.divide(2), TRACK_WIDTH.divide(2)), // frontL
+      new Translation2d(WHEEL_BASE.divide(2), TRACK_WIDTH.divide(-2)), // frontR
+      new Translation2d(WHEEL_BASE.divide(-2), TRACK_WIDTH.divide(2)), // rearL
+      new Translation2d(WHEEL_BASE.divide(-2), TRACK_WIDTH.divide(-2)) // rearR
   };
 
   /** PID constants used for driving. */
   public static final class DrivePID {
-    public static final double P = 0.6;
+    public static final double P = 1;
     public static final double I = 0.0;
     public static final double D = 0.0;
   }
 
   /** PID constants used for rotating. */
   public static final class RotationPID {
-    public static final double P = 0.6;
+    public static final double P = 1;
     public static final double I = 0.0;
     public static final double D = 0.0;
   }
@@ -99,22 +98,24 @@ public final class DriveConstants {
   /** Maximum voltage of wheels. */
   public static final Measure<Voltage> MAX_VOLTAGE = Volts.of(12);
 
-  /** Constraints for driving. */
+  /** Constraints for drive PID and FFD. */
   public static final Constraints DRIVE_CONSTRAINTS = new Constraints(MAX_SPEED.in(MetersPerSecond),
       MAX_ACCEL.in(MetersPerSecondPerSecond));
 
-  /** Constraints for rotation. */
+  /** Constraints for rotation PID and FFD. */
   public static final Constraints ROTATION_CONSTRAINTS = new Constraints(
       MAX_ANGULAR_SPEED.in(RadiansPerSecond),
       MAX_ANGULAR_ACCEL.in(RadiansPerSecond.per(Second)));
-  
-  /** Gearing reduction. */
+
+  /** Gearing reduction ratio. */
   public static final double REDUCTION = 7.21;
 
-  /** Measurement deviations. */
-  // x and y: 0.001 m
-  // heading: 0.001 rad
-  // l and r velocity: 0.1 m/s
-  // l and r position: 0.005 m
+  /**
+   * Measurement deviations.
+   * x and y: 0.001 m:
+   * heading: 0.001 rad:
+   * l and r velocity: 0.1 m/s:
+   * l and r position: 0.005 m:
+   */
   public static final Vector<N7> STD_DEVS = VecBuilder.fill(0.001, 0.001, 0.001, 0.1, 0.1, 0.005, 0.005);
 }

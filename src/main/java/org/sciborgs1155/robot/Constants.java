@@ -4,12 +4,16 @@ import static edu.wpi.first.units.Units.Seconds;
 
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Time;
+import edu.wpi.first.units.Units;
 
 /**
- * Constants is a globally accessible class for storing immutable values. Every value should be
+ * Constants is a globally accessible class for storing immutable values. Every
+ * value should be
  * <code>public static final</code>.
  *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
+ * <p>
+ * It is advised to statically import this class (or one of its inner classes)
+ * wherever the
  * constants are needed, to reduce verbosity.
  *
  * @see Units
@@ -21,11 +25,9 @@ public class Constants {
   /** Magnitude of joystick input to be considered negligable. */
   public static final double DEADBAND = 0.1;
 
-  /**
-   * Speed multiplier of the Slow-Speed mode which makes it easier to make more precise movements.
-   */
+  /** Speed multiplier of the Slow-Speed mode. */
   public static final double SLOW_SPEED = 0.33;
 
-  /** Speed of the Full-Speed mode which makes it easier to travel large distances. */
+  /** Speed of the Full-Speed mode. */
   public static final double FULL_SPEED = 1.0;
 }

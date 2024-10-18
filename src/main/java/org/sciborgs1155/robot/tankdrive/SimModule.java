@@ -16,18 +16,15 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import monologue.Annotations.Log;
 
+/** A simulation of one side of a differential(tank) drivetrain. */
 public class SimModule implements TankModuleIO {
-  /** Name. */
-  private String name = "SimModule";
+  /** Last FPGA timestamp that the sim had been updated. */
+  private Measure<Time> lastTime;
 
-  /** Last time that the sim was update. */
-  private Measure<Time> lastTime = Seconds.of(Timer.getFPGATimestamp());
-
-  @Log.NT
-  /** Simulated motors. */
-  private final DCMotorSim motors = new DCMotorSim(DCMotor.getNEO(2), DriveConstants.REDUCTION,
+  /** Simulated instance of one side of the drivetrain(2 neos). */
+  private DCMotorSim motors = new DCMotorSim(DCMotor.getNEO(2),
+      DriveConstants.REDUCTION,
       DriveConstants.MOI_MASS.in(Kilograms));
 
   @Override
@@ -36,47 +33,48 @@ public class SimModule implements TankModuleIO {
         () -> {
           // Updates input voltages of the motors.
           motors.setInputVoltage(voltage.in(Volts));
+
+          // Updates the simulation time of the simulated motors.
           motors.update(Timer.getFPGATimestamp() - lastTime.in(Seconds));
           lastTime = Seconds.of(Timer.getFPGATimestamp());
         },
-        this)
-        .andThen(Commands.idle(this)).withName("setVoltage(" + voltage.in(Volts) + ")");
+        this).withName("setVoltage(" + voltage.in(Volts) + ")").andThen(Commands.idle(this));
   }
 
   @Override
-  public Measure<Distance> getPosition() {
+  public Measure<Distance> getDisplacement() {
+    // Converts angular displacement to linear displacement.
     return Meters.of(
         motors.getAngularPositionRotations()
             * DriveConstants.WHEEL_RADIUS.in(Meters)
-            * Math.PI);
+            * Math.PI * 2);
   }
 
   @Override
   public Measure<Velocity<Distance>> getVelocity() {
+    // Converts motor angular velocity into linear velocity.
     return MetersPerSecond.of(
         motors.getAngularVelocityRPM()
             * DriveConstants.WHEEL_RADIUS.in(Meters)
-            * Math.PI);
-  }
-
-  /** NOTE: This resets the module positions. */
-  @Override
-  public void resetEncoders() {
-    motors.setState(0, 0);
-  }
-
-  @Override
-  public String getName() {
-    return this.name;
+            * Math.PI * 2);
   }
 
   /** Creates an instance of a Sim Module. */
-  public static TankModuleIO create(String name) {
-    return new SimModule(name);
+  public static TankModuleIO create() {
+    return new SimModule();
   }
 
-  private SimModule(String name) {
-    this.name = "SimModule: " + name;
+  /** Creates an instance of a Sim Module. */
+  private SimModule() {
+    // Instantiation.
+    motors = new DCMotorSim(DCMotor.getNEO(2), DriveConstants.REDUCTION, DriveConstants.MOI_MASS.in(Kilograms));
+    lastTime = Seconds.of(Timer.getFPGATimestamp());
+  }
+
+  /** NOTE: This resets the module rotations without offsetting the readings. */
+  @Override
+  public void resetEncoders() {
+    motors.setState(0, 0);
   }
 
   @Override

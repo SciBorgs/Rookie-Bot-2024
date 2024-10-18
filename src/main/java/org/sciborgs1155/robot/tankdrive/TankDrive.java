@@ -8,6 +8,8 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
+import static org.sciborgs1155.robot.Constants.DEADBAND;
+import static org.sciborgs1155.robot.Constants.PERIOD;
 import static org.sciborgs1155.robot.Ports.Drive.FRONT_LEFT_DRIVE;
 import static org.sciborgs1155.robot.Ports.Drive.FRONT_RIGHT_DRIVE;
 import static org.sciborgs1155.robot.Ports.Drive.REAR_LEFT_DRIVE;
@@ -20,15 +22,22 @@ import static org.sciborgs1155.robot.tankdrive.DriveConstants.ROTATION_CONSTRAIN
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.STD_DEVS;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.TRACK_WIDTH;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.WHEEL_RADIUS;
-import static org.sciborgs1155.robot.Constants.PERIOD;
 
 import java.util.function.DoubleSupplier;
 
+import org.sciborgs1155.robot.Robot;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.DriveFFD;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.DrivePID;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationFFD;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationPID;
+import org.sciborgs1155.robot.tankdrive.TankModuleIO.NoModule;
+
+import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -42,17 +51,11 @@ import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import monologue.Logged;
 import monologue.Annotations.Log;
-import org.sciborgs1155.robot.Robot;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.DriveFFD;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.DrivePID;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationFFD;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationPID;
+import monologue.Logged;
 
+/** Differential Drive class with odometry and simulation. */
 public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   /** Left side of the drivetrain. */
   private TankModuleIO left;
@@ -63,31 +66,43 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   /** Handles Joystick input. */
   private DifferentialDrive inputHandler;
 
-  /** Simulated drivetrain. */
-  private DifferentialDrivetrainSim simulation;
+  /** Allows for manual control of the speed of the motors. */
+  public double speedMultiplier;
 
-  /** "Gyroscope" used to track rotation for odometry measurements. */
+  /** Voltage setpoints. */
+  private DifferentialDriveWheelVoltages targetVoltages;
+
+  @Log.NT
+  /** Position setpoint. */
+  private Pose2d goalPose;
+
+  /** Stores robot heading. */
   private Rotation2d fakeGyro;
 
-  /** Used for odometry. */
-  private DifferentialDriveWheelPositions lastPositions;
+  /** Displacement of motors since last odometry update. */
+  private DifferentialDriveWheelPositions lastDisplacement;
 
   /** Used for tracking robot position. */
   private DifferentialDriveOdometry odometry;
 
-  /** Simulated field GUI. */
+  /** Simulated drivetrain. */
+  private DifferentialDrivetrainSim simulation;
+
   @Log.NT
+  /** Simulated field GUI. */
   private Field2d simfield;
 
-  /** Odometry field GUI. */
   @Log.NT
+  /** Odometry field GUI. */
   private Field2d odofield;
 
   /** PID controller for driving(linear error -> linear velocity). */
+  @Log.NT
   private ProfiledPIDController drivePID = new ProfiledPIDController(DrivePID.P, DrivePID.I, DrivePID.D,
       DRIVE_CONSTRAINTS);
 
   /** PID controller for rotating(angular error -> angular velocity). */
+  @Log.NT
   private ProfiledPIDController rotationPID = new ProfiledPIDController(RotationPID.P, RotationPID.I, RotationPID.D,
       ROTATION_CONSTRAINTS);
 
@@ -98,55 +113,6 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   private SimpleMotorFeedforward rotationFFD = new SimpleMotorFeedforward(RotationFFD.S, RotationFFD.V, RotationFFD.A);
 
   /**
-   * Creates an instance of tankdrive depending on if the robot is real or not.
-   *
-   * @return T A N K.
-   */
-  public static TankDrive create() {
-    if (Robot.isReal()) {
-      return new TankDrive(
-          SparkModule.create(FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE, "Left Module"),
-          SparkModule.create(FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE, "Right Module"));
-    }
-    if (!Robot.isReal()) {
-      return new TankDrive(SimModule.create("Left Module"), SimModule.create("Right Module"));
-    }
-
-    return null;
-  }
-
-  private TankDrive(TankModuleIO left, TankModuleIO right) {
-    // Instantiation.
-    this.left = left;
-    this.right = right;
-    inputHandler = new DifferentialDrive(left::setVoltage, right::setVoltage);
-
-    // Scales output to voltage.
-    inputHandler.setMaxOutput(DriveConstants.MAX_VOLTAGE.in(Volts));
-
-    // Instantiation of the sim.
-    simulation = new DifferentialDrivetrainSim(
-        DCMotor.getNEO(2), // 2 NEO motors on each side of the drivetrain.
-        REDUCTION,
-        MOI_MASS.in(Kilograms),
-        ROBOT_MASS.in(Kilograms),
-        WHEEL_RADIUS.in(Meters),
-        TRACK_WIDTH.in(Meters),
-        STD_DEVS);
-    simfield = new Field2d();
-
-    // Instantiates odometry.
-    lastPositions = new DifferentialDriveWheelPositions(0, 0);
-    fakeGyro = new Rotation2d(Degrees.of(0));
-    odometry = new DifferentialDriveOdometry(fakeGyro, lastPositions.leftMeters, lastPositions.rightMeters);
-    odofield = new Field2d();
-
-    // Default command.
-    setDefaultCommand(Commands.idle(this));
-    SmartDashboard.putData(this);
-  }
-
-  /**
    * Updates the power of the motors based on an arbitrary power value(tank).
    *
    * @param leftInput  : Power, from [-1.0,1.0].
@@ -154,9 +120,8 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
    * @return Command.
    */
   public Command input(DoubleSupplier leftInput, DoubleSupplier rightInput) {
-    return runOnce(() -> {
-      inputHandler.tankDrive(leftInput.getAsDouble(), rightInput.getAsDouble());
-    }).withTimeout(PERIOD.in(Seconds))
+    return runOnce(() -> inputHandler.tankDrive(leftInput.getAsDouble(), rightInput.getAsDouble()))
+        .withTimeout(PERIOD.in(Seconds))
         .withName("input(" + leftInput.getAsDouble() + "," + rightInput.getAsDouble() + ")");
   }
 
@@ -168,9 +133,8 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
    * @return Command.
    */
   public Command inputArcade(DoubleSupplier drive, DoubleSupplier rotation) {
-    return runOnce(() -> {
-      inputHandler.arcadeDrive(drive.getAsDouble(), rotation.getAsDouble());
-    }).withTimeout(PERIOD.in(Seconds))
+    return runOnce(() -> inputHandler.arcadeDrive(-drive.getAsDouble(), rotation.getAsDouble()))
+        .withTimeout(PERIOD.in(Seconds))
         .withName("inputArcade(" + drive.getAsDouble() + "," + rotation.getAsDouble() + ")");
   }
 
@@ -181,31 +145,37 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
    * @return Command.
    */
   public Command drive(Measure<Distance> distance) {
-    // The goal end pose of the robot after the command has been ran.
-    Translation2d goalPose = odometry
+    // The target pose after the command is done(current pose).
+    goalPose = odometry
         .getPoseMeters()
-        .transformBy(
-            new Transform2d(Meters.of(0), distance, odometry.getPoseMeters().getRotation()))
-        .getTranslation();
+        .plus(new Transform2d(Meters.of(2), Meters.of(0), Rotation2d.fromDegrees(0)));
 
-    // The PID measurement.
-    Measure<Distance> distanceFromGoal = Meters.of(odometry.getPoseMeters().getTranslation().getDistance(goalPose));
+    SmartDashboard.putNumber("Drivetrain Setpoint", 0);
 
+    // Runs closed loop until within tolerance of the target position.
     return run(
         () -> {
-          Measure<Velocity<Distance>> pidOutput = MetersPerSecond
-              .of(drivePID.calculate(distanceFromGoal.in(Meters), 0));
-          Measure<Voltage> ffdOuput = Volts.of(driveFFD.calculate(pidOutput.in(MetersPerSecond)));
+          SmartDashboard.putNumber("Drivetrain Error",
+              odometry.getPoseMeters().getTranslation().getDistance(goalPose.getTranslation()));
 
-          CommandScheduler.getInstance()
-              .schedule(left.setVoltage(ffdOuput).alongWith(right.setVoltage(ffdOuput)));
-        }).withName("drive(" + distance.in(Meters) + ")");
+          // PID calculations(error -> velocity).
+          Measure<Velocity<Distance>> pidOutput = MetersPerSecond
+              .of(drivePID.calculate(odometry.getPoseMeters().getTranslation().getDistance(goalPose.getTranslation()),
+                  0));
+          SmartDashboard.putNumber("Drivetrain PID Output", pidOutput.in(MetersPerSecond));
+
+          // FFD calculations(velocity -> voltage, negated because PID is weird).
+          Measure<Voltage> ffdOutput = Volts.of(-driveFFD.calculate(pidOutput.in(MetersPerSecond)));
+
+          // Updates voltages.
+          inputHandler.tankDrive(ffdOutput.in(Volts), ffdOutput.in(Volts));
+        }).until(() -> drivePID.atGoal()).withName("drive(" + distance.in(Meters) + ")");
   }
 
   /**
    * Turns a certain angle.
    *
-   * @param angle : Angle
+   * @param angle : Angle.
    * @return Command.
    */
   public Command rotate(Measure<Angle> angle) {
@@ -216,51 +186,154 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   /**
    * Turns to a certain orientation.
    *
-   * @param angle : Angle
+   * @param angle : Angle.
    * @return Command.
    */
   public Command rotateTo(Measure<Angle> angle) {
     // The goal end pose of the robot after the command has been ran.
     Rotation2d goalPose = Rotation2d.fromRadians(angle.in(Radians));
 
-    // The PID measurement.
-    Measure<Angle> distanceFromGoal = Radians.of(odometry.getPoseMeters().getRotation().minus(goalPose).getRadians());
-
     return run(
         () -> {
+          // The PID measurement.
+          Measure<Angle> distanceFromGoal = Radians
+              .of(odometry.getPoseMeters().getRotation().minus(goalPose).getRadians());
+
+          // PID calculations(error -> velocity).
           Measure<Velocity<Angle>> pidOutput = RadiansPerSecond
               .of(rotationPID.calculate(distanceFromGoal.in(Radians), 0));
-          Measure<Voltage> ffdOuput = Volts.of(rotationFFD.calculate(pidOutput.in(RadiansPerSecond)));
 
-          CommandScheduler.getInstance()
-              .schedule(left.setVoltage(ffdOuput).alongWith(right.setVoltage(ffdOuput)));
+          // FFD calculations(velocity -> voltage).
+          Measure<Voltage> ffdOutput = Volts.of(rotationFFD.calculate(pidOutput.in(RadiansPerSecond)));
+
+          // Updates voltages.
+          inputHandler.tankDrive(ffdOutput.in(Volts), -ffdOutput.in(Volts));
         }).withName("rotateTo(" + angle.in(Radians) + ")");
   }
 
-  @Override
-  public void periodic() {
-    // Differences in positions
-    DifferentialDriveWheelPositions deltaPositions = new DifferentialDriveWheelPositions(
-        left.getPosition().in(Meters) - lastPositions.leftMeters,
-        right.getPosition().in(Meters) - lastPositions.rightMeters);
+  /**
+   * Sets the speed multiplier of the drivetrain.
+   * 
+   * @param speedMultiplier : Amount to multiply the voltage by.
+   */
+  public void setSpeedMultiplier(double speedMultiplier) {
+    this.speedMultiplier = speedMultiplier;
+  }
 
-    // Amount of distance traveled non-linear-ly
+  /**
+   * Updates Odometry measurements.
+   */
+  public void updateOdometry() {
+    // Differences in wheel displacement since last odometry update.
+    DifferentialDriveWheelPositions deltaPositions = new DifferentialDriveWheelPositions(
+        left.getDisplacement().in(Meters) - lastDisplacement.leftMeters,
+        right.getDisplacement().in(Meters) - lastDisplacement.rightMeters);
+
+    // Amount of distance traveled non-linear-ly.
     Measure<Distance> distanceRotated = Meters.of(deltaPositions.leftMeters - deltaPositions.rightMeters);
 
     // Converts distance to angle.
     Measure<Angle> angleRotated = Radians.of(distanceRotated.in(Meters) * TRACK_WIDTH.in(Meters) * 2 / Math.PI);
 
-    // Updates the fake gyro based on angle rotated.
-    fakeGyro = fakeGyro.rotateBy(Rotation2d.fromRadians(angleRotated.in(Radians)));
-    lastPositions = new DifferentialDriveWheelPositions(left.getPositionDouble(), right.getPositionDouble());
+    // Adds angular displacement to previous heading.
+    fakeGyro = fakeGyro.rotateBy(Rotation2d.fromRadians(angleRotated.negate().in(Radians)));
 
-    // Updates the odometry.
-    odometry.update(fakeGyro, left.getPosition().in(Meters), right.getPosition().in(Meters));
+    // Updates the displacement.
+    lastDisplacement = new DifferentialDriveWheelPositions(left.getDisplacementDouble(), right.getDisplacementDouble());
 
-    // Updates sim GUI's.
-    simulation.setInputs(left.getVoltageDouble(), right.getVoltageDouble());
-    simfield.setRobotPose(simulation.getPose());
+    // Updates the robot pose using displacements and calculated heading.
+    odometry.update(fakeGyro, left.getDisplacement().in(Meters), right.getDisplacement().in(Meters));
+
+    // Displays updated robot pose.
     odofield.setRobotPose(odometry.getPoseMeters());
+  }
+
+  /**
+   * Creates an instance of tankdrive depending on if the robot is real or not.
+   * 
+   * @return Instance of Tankdrive.
+   */
+  public static TankDrive create() {
+    if (Robot.isReal()) {
+      return new TankDrive(
+          SparkModule.create(FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE),
+          SparkModule.create(FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE));
+    }
+    if (!Robot.isReal()) {
+      return new TankDrive(NoModule.create(), NoModule.create());
+    }
+
+    return null;
+  }
+
+  private TankDrive(TankModuleIO left, TankModuleIO right) {
+    // Instantiation of hardware and interfaces.
+    this.left = left;
+    this.right = right;
+    targetVoltages = new DifferentialDriveWheelVoltages(0, 0);
+    goalPose = new Pose2d();
+    inputHandler = new DifferentialDrive(
+        (lVoltage) -> {
+          targetVoltages.left = lVoltage * speedMultiplier;
+          left.setVoltage(targetVoltages.left);
+        },
+        (rVoltage) -> {
+          targetVoltages.right = rVoltage * speedMultiplier;
+          right.setVoltage(targetVoltages.right);
+        });
+
+    // Scales output to voltage.
+    inputHandler.setMaxOutput(DriveConstants.MAX_VOLTAGE.in(Volts));
+
+    // Instantiation of the sim.
+    simulation = new DifferentialDrivetrainSim(
+        DCMotor.getNEO(2),
+        REDUCTION,
+        MOI_MASS.in(Kilograms),
+        ROBOT_MASS.in(Kilograms),
+        WHEEL_RADIUS.in(Meters),
+        TRACK_WIDTH.in(Meters),
+        STD_DEVS);
+    simfield = new Field2d();
+
+    // Instantiates odometry.
+    lastDisplacement = new DifferentialDriveWheelPositions(0, 0);
+    fakeGyro = new Rotation2d(Degrees.of(0));
+    odometry = new DifferentialDriveOdometry(fakeGyro, lastDisplacement.leftMeters, lastDisplacement.rightMeters);
+    odofield = new Field2d();
+
+    // Maximum speed.
+    speedMultiplier = 1;
+
+    // Disables garbage ahh warnings.
+    inputHandler.setSafetyEnabled(false);
+    inputHandler.setDeadband(DEADBAND);
+
+    // Default command is to stop.
+    setDefaultCommand(runOnce(() -> {
+      inputHandler.tankDrive(0, 0);
+    }));
+  }
+
+  /** Resets the default command to stop. */
+  public void resetDefaultCommand() {
+    setDefaultCommand(runOnce(() -> {
+      inputHandler.tankDrive(0, 0);
+    }));
+  }
+
+  @Override
+  public void periodic() {
+    // Updates odometry.
+    updateOdometry();
+
+    // Updates voltages on real and sim motors.
+    inputHandler.tankDrive(targetVoltages.left, targetVoltages.right);
+    simulation.setInputs(targetVoltages.left, targetVoltages.right);
+
+    // Updates simulation.
+    simulation.update(PERIOD.in(Seconds));
+    simfield.setRobotPose(simulation.getPose());
   }
 
   @Override
