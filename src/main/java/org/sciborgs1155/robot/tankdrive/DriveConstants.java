@@ -61,14 +61,14 @@ public final class DriveConstants {
 
   /** PID constants used for driving. */
   public static final class DrivePID {
-    public static final double P = 1;
+    public static final double P = 10;
     public static final double I = 0.0;
-    public static final double D = 0.0;
+    public static final double D = 0.5;
   }
 
   /** PID constants used for rotating. */
   public static final class RotationPID {
-    public static final double P = 1;
+    public static final double P = 0.5;
     public static final double I = 0.0;
     public static final double D = 0.0;
   }
@@ -111,11 +111,9 @@ public final class DriveConstants {
   public static final double REDUCTION = 7.21;
 
   /**
-   * Measurement deviations.
-   * x and y: 0.001 m:
-   * heading: 0.001 rad:
-   * l and r velocity: 0.1 m/s:
-   * l and r position: 0.005 m:
+   * Measurement deviations. x and y: 0.001 m: heading: 0.001 rad: l and r
+   * velocity: 0.1 m/s: l and
+   * r position: 0.005 m:
    */
   public static final Vector<N7> STD_DEVS = VecBuilder.fill(0.001, 0.001, 0.001, 0.1, 0.1, 0.005, 0.005);
 }

@@ -1,20 +1,18 @@
 package org.sciborgs1155.robot;
 
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous;
 import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.teleop;
+import static org.sciborgs1155.robot.Constants.PERIOD;
 
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import monologue.Annotations.Log;
 import monologue.Logged;
 import monologue.Monologue;
-
-import static org.sciborgs1155.robot.Constants.PERIOD;
-
 import org.littletonrobotics.urcl.URCL;
 import org.sciborgs1155.lib.CommandRobot;
 import org.sciborgs1155.lib.FaultLogger;
@@ -36,6 +34,7 @@ public class Robot extends CommandRobot implements Logged {
   // INPUT DEVICES
   @SuppressWarnings("unused")
   private final CommandXboxController operator = new CommandXboxController(OI.OPERATOR);
+
   private final CommandXboxController driver = new CommandXboxController(OI.DRIVER);
 
   // SUBSYSTEMS
@@ -75,28 +74,41 @@ public class Robot extends CommandRobot implements Logged {
    * running on a subsystem.
    */
   private void configureSubsystemDefaults() {
-
   }
 
   /** Configures trigger -> command bindings */
   private void configureBindings() {
 
-    teleop().onTrue(Commands.runOnce(() -> {
-      drive.setDefaultCommand(drive.inputArcade(() -> driver.getRawAxis(1),
-          () -> driver.getRawAxis(0)));
-      System.out.println("Enabled Teleop Drive!");
-    }));
+    teleop()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  CommandScheduler.getInstance().cancelAll();
+                  drive.setDefaultCommand(
+                      drive.inputArcade(() -> driver.getRawAxis(1), () -> driver.getRawAxis(0)));
+                  System.out.println("Enabled Teleop!");
+                }));
 
-    teleop().onFalse(Commands.runOnce(() -> {
-      drive.resetDefaultCommand();
-      System.out.println("Disabled Teleop Drive!");
-    }));
+    teleop()
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  drive.resetDefaultCommand();
+                  System.out.println("Disabled Teleop!");
+                }));
 
-    autonomous().onTrue(drive.drive(Meters.of(5)).beforeStarting(() -> {
-      drive.removeDefaultCommand();
-    }));
+    autonomous()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  drive.resetDefaultCommand();
 
-    FaultLogger.onFailing(f -> Commands.print(f.toString()));
+                  System.out.println("Enabled Autonomous!");
+                  // drive.drive(Meters.of(10)).schedule();
+                  // drive.rotate(Degrees.of(180)).schedule();
+                }));
+
+    FaultLogger.onFailing(fault -> Commands.print(fault.toString()));
 
     driver
         .leftBumper()

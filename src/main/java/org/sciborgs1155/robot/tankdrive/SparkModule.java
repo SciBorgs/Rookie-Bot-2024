@@ -5,19 +5,17 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
-import org.sciborgs1155.lib.FaultLogger;
-import org.sciborgs1155.robot.Constants;
-
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import org.sciborgs1155.lib.FaultLogger;
+import org.sciborgs1155.robot.Constants;
 
 /** Represents two SparkMaxes on one side of a differential(tank) drivetrain. */
 public class SparkModule implements TankModuleIO {
@@ -41,7 +39,9 @@ public class SparkModule implements TankModuleIO {
           frontMotor.setVoltage(voltage.in(Volts));
           rearMotor.setVoltage(voltage.in(Volts));
         },
-        this).withName("setVoltage(" + voltage.in(Volts) + ")").andThen(Commands.idle(this));
+        this)
+        .withName("setVoltage(" + voltage.in(Volts) + ")")
+        .andThen(Commands.idle(this));
   }
 
   @Override

@@ -18,7 +18,7 @@ import monologue.Logged;
 public interface TankModuleIO extends AutoCloseable, Logged, Subsystem {
   /**
    * Sets the voltage of both of the motors in the module.
-   * 
+   *
    * @param voltage : Voltage.
    */
   public Command setVoltage(Measure<Voltage> voltage);
