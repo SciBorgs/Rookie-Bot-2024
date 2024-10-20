@@ -9,10 +9,16 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
+import static org.sciborgs1155.robot.Ports.Drive.FRONT_LEFT_DRIVE;
+import static org.sciborgs1155.robot.Ports.Drive.FRONT_RIGHT_DRIVE;
+import static org.sciborgs1155.robot.Ports.Drive.REAR_LEFT_DRIVE;
+import static org.sciborgs1155.robot.Ports.Drive.REAR_RIGHT_DRIVE;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.units.Angle;
@@ -51,40 +57,76 @@ public final class DriveConstants {
   /** Radius of wheels. */
   public static final Measure<Distance> WHEEL_RADIUS = Inches.of(3);
 
-  /** Positions of the modules relative to the orgin of the robot. */
-  public static final Translation2d[] MODULE_OFFSET = {
-      new Translation2d(WHEEL_BASE.divide(2), TRACK_WIDTH.divide(2)), // frontL
-      new Translation2d(WHEEL_BASE.divide(2), TRACK_WIDTH.divide(-2)), // frontR
-      new Translation2d(WHEEL_BASE.divide(-2), TRACK_WIDTH.divide(2)), // rearL
-      new Translation2d(WHEEL_BASE.divide(-2), TRACK_WIDTH.divide(-2)) // rearR
-  };
-
   /** PID constants used for driving. */
   public static final class DrivePID {
+    /** Proportional coefficient. */
     public static final double P = 10;
+    /** Integral coefficient. */
     public static final double I = 0.0;
+    /** Derivative coefficient. */
     public static final double D = 0.5;
+
+    /** Error Tolerance(Meters). */
+    public static final double TOLERANCE = 0.2;
+
+    /** PID controller for driving(linear error -> linear velocity). */
+    public static ProfiledPIDController getController() {
+      ProfiledPIDController controller = new ProfiledPIDController(P, I, D, ROTATION_CONSTRAINTS);
+      controller.setTolerance(TOLERANCE);
+      return controller;
+    }
   }
 
   /** PID constants used for rotating. */
   public static final class RotationPID {
-    public static final double P = 0.5;
+    /** Proportional coefficient. */
+    public static final double P = 1;
+    /** Integral coefficient. */
     public static final double I = 0.0;
-    public static final double D = 0.0;
+    /** Derivative coefficient. */
+    public static final double D = 0.5;
+
+    /** Error Tolerance(Radians). */
+    public static final double TOLERANCE = 0.008;
+
+    /** PID controller for rotating(angle error -> angule velocity). */
+    public static ProfiledPIDController getController() {
+      ProfiledPIDController controller = new ProfiledPIDController(P, I, D, ROTATION_CONSTRAINTS);
+      controller.setTolerance(TOLERANCE);
+      return controller;
+    }
   }
 
   /** FFD constants used for driving. */
   public static final class DriveFFD {
+    /** Static gain. */
     public static final double S = 0.0;
+    /** Velocity gain. */
     public static final double V = 0.1;
+    /** Acceleration gain. */
     public static final double A = 0.01;
+
+    /** FFD controller for driving(velocity -> voltage). */
+    public static SimpleMotorFeedforward getController() {
+      return new SimpleMotorFeedforward(S, V, A);
+    }
   }
 
   /** FFD constants used for rotation. */
   public static final class RotationFFD {
+    /** Static gain. */
     public static final double S = 0.0;
+    /** Velocity gain. */
     public static final double V = 0.1;
+    /** Acceleration gain. */
     public static final double A = 0.01;
+
+    /**
+     * FFD controller for rotating(drivetrain angular velocity ->voltage).
+     */
+    public static SimpleMotorFeedforward getController() {
+      return new SimpleMotorFeedforward(S, V, A);
+    }
   }
 
   /**
@@ -116,4 +158,11 @@ public final class DriveConstants {
    * r position: 0.005 m:
    */
   public static final Vector<N7> STD_DEVS = VecBuilder.fill(0.001, 0.001, 0.001, 0.1, 0.1, 0.005, 0.005);
+
+  /** Array of motor ID's(for cleaner instantiation). */
+  public static final int[] MOTOR_IDS = new int[] { FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE,
+      FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE };
+  
+  /** Starting pose of the robot. */
+  public static final Pose2d STARTING_POSE = new Pose2d();
 }

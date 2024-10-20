@@ -1,8 +1,10 @@
 package org.sciborgs1155.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Seconds;
-import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous;
 import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.teleop;
+import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.test;
 import static org.sciborgs1155.robot.Constants.PERIOD;
 
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -97,15 +99,16 @@ public class Robot extends CommandRobot implements Logged {
                   System.out.println("Disabled Teleop!");
                 }));
 
-    autonomous()
+    test()
         .onTrue(
             Commands.runOnce(
                 () -> {
                   drive.resetDefaultCommand();
 
-                  System.out.println("Enabled Autonomous!");
-                  // drive.drive(Meters.of(10)).schedule();
-                  // drive.rotate(Degrees.of(180)).schedule();
+                  System.out.println("Enabled Test Mode!");
+                  drive.drive(Meters.of(10)).finallyDo(() -> {
+                    drive.rotate(Degrees.of(135)).schedule();
+                  }).schedule();
                 }));
 
     FaultLogger.onFailing(fault -> Commands.print(fault.toString()));

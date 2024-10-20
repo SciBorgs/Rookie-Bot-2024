@@ -3,7 +3,7 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/Robot/autos": "String Chooser",
-      "/Robot/drive/simfield": "Field2d"
+      "/Robot/drive/field": "Field2d"
     }
   },
   "NetworkTables Info": {
