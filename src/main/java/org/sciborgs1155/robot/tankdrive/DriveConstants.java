@@ -42,11 +42,12 @@ public final class DriveConstants {
   public static final Measure<Mass> MOI_MASS = Kilograms.of(7.5);
 
   /** Max acceleration of a motor. */
-  public static final Measure<Velocity<Velocity<Distance>>> MAX_ACCEL = MetersPerSecondPerSecond.of(8);
+  public static final Measure<Velocity<Velocity<Distance>>> MAX_ACCEL =
+      MetersPerSecondPerSecond.of(8);
 
   /** Max turning acceleration of the drivetrain. */
-  public static final Measure<Velocity<Velocity<Angle>>> MAX_ANGULAR_ACCEL = RadiansPerSecond.per(Second)
-      .of(2 * Math.PI);
+  public static final Measure<Velocity<Velocity<Angle>>> MAX_ANGULAR_ACCEL =
+      RadiansPerSecond.per(Second).of(2 * Math.PI);
 
   /** Distance between right and left wheels on robot */
   public static final Measure<Distance> TRACK_WIDTH = Meters.of(0.5715);
@@ -61,8 +62,10 @@ public final class DriveConstants {
   public static final class DrivePID {
     /** Proportional coefficient. */
     public static final double P = 10;
+
     /** Integral coefficient. */
     public static final double I = 0.0;
+
     /** Derivative coefficient. */
     public static final double D = 0.5;
 
@@ -81,8 +84,10 @@ public final class DriveConstants {
   public static final class RotationPID {
     /** Proportional coefficient. */
     public static final double P = 1;
+
     /** Integral coefficient. */
     public static final double I = 0.0;
+
     /** Derivative coefficient. */
     public static final double D = 0.5;
 
@@ -101,8 +106,10 @@ public final class DriveConstants {
   public static final class DriveFFD {
     /** Static gain. */
     public static final double S = 0.0;
+
     /** Velocity gain. */
     public static final double V = 0.1;
+
     /** Acceleration gain. */
     public static final double A = 0.01;
 
@@ -116,23 +123,20 @@ public final class DriveConstants {
   public static final class RotationFFD {
     /** Static gain. */
     public static final double S = 0.0;
+
     /** Velocity gain. */
     public static final double V = 0.1;
+
     /** Acceleration gain. */
     public static final double A = 0.01;
 
-    /**
-     * FFD controller for rotating(drivetrain angular velocity ->voltage).
-     */
+    /** FFD controller for rotating(drivetrain angular velocity ->voltage). */
     public static SimpleMotorFeedforward getController() {
       return new SimpleMotorFeedforward(S, V, A);
     }
   }
 
-  /**
-   * Converts a distance(traveled by one side of the drivetrain) to an angular
-   * distance.
-   */
+  /** Converts a distance(traveled by one side of the drivetrain) to an angular distance. */
   public static final Measure<Angle> distanceToAngle(Measure<Distance> distance) {
     return Radians.of(distance.divide(TRACK_WIDTH.times(2).times(Math.PI).in(Meters)).in(Meters));
   }
@@ -141,28 +145,29 @@ public final class DriveConstants {
   public static final Measure<Voltage> MAX_VOLTAGE = Volts.of(12);
 
   /** Constraints for drive PID and FFD. */
-  public static final Constraints DRIVE_CONSTRAINTS = new Constraints(MAX_SPEED.in(MetersPerSecond),
-      MAX_ACCEL.in(MetersPerSecondPerSecond));
+  public static final Constraints DRIVE_CONSTRAINTS =
+      new Constraints(MAX_SPEED.in(MetersPerSecond), MAX_ACCEL.in(MetersPerSecondPerSecond));
 
   /** Constraints for rotation PID and FFD. */
-  public static final Constraints ROTATION_CONSTRAINTS = new Constraints(
-      MAX_ANGULAR_SPEED.in(RadiansPerSecond),
-      MAX_ANGULAR_ACCEL.in(RadiansPerSecond.per(Second)));
+  public static final Constraints ROTATION_CONSTRAINTS =
+      new Constraints(
+          MAX_ANGULAR_SPEED.in(RadiansPerSecond),
+          MAX_ANGULAR_ACCEL.in(RadiansPerSecond.per(Second)));
 
   /** Gearing reduction ratio. */
   public static final double REDUCTION = 7.21;
 
   /**
-   * Measurement deviations. x and y: 0.001 m: heading: 0.001 rad: l and r
-   * velocity: 0.1 m/s: l and
+   * Measurement deviations. x and y: 0.001 m: heading: 0.001 rad: l and r velocity: 0.1 m/s: l and
    * r position: 0.005 m:
    */
-  public static final Vector<N7> STD_DEVS = VecBuilder.fill(0.001, 0.001, 0.001, 0.1, 0.1, 0.005, 0.005);
+  public static final Vector<N7> STD_DEVS =
+      VecBuilder.fill(0.001, 0.001, 0.001, 0.1, 0.1, 0.005, 0.005);
 
   /** Array of motor ID's(for cleaner instantiation). */
-  public static final int[] MOTOR_IDS = new int[] { FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE,
-      FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE };
-  
+  public static final int[] MOTOR_IDS =
+      new int[] {FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE, FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE};
+
   /** Starting pose of the robot. */
   public static final Pose2d STARTING_POSE = new Pose2d();
 }

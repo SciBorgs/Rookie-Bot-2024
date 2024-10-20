@@ -23,12 +23,9 @@ import org.sciborgs1155.robot.commands.Autos;
 import org.sciborgs1155.robot.tankdrive.TankDrive;
 
 /**
- * This class is where the bulk of the robot should be declared. Since
- * Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in
- * the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of
- * the robot (including
+ * This class is where the bulk of the robot should be declared. Since Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class Robot extends CommandRobot implements Logged {
@@ -40,12 +37,10 @@ public class Robot extends CommandRobot implements Logged {
   private final CommandXboxController driver = new CommandXboxController(OI.DRIVER);
 
   // SUBSYSTEMS
-  @Log.NT
-  private final TankDrive drive = TankDrive.create();
+  @Log.NT private final TankDrive drive = TankDrive.create();
 
   // COMMANDS
-  @Log.NT
-  private final Autos autos = new Autos();
+  @Log.NT private final Autos autos = new Autos();
 
   /** The robot contains subsystems, OI devices, and commands. */
   public Robot() {
@@ -71,12 +66,10 @@ public class Robot extends CommandRobot implements Logged {
   }
 
   /**
-   * Configures subsystem default commands. Default commands are scheduled when no
-   * other command is
+   * Configures subsystem default commands. Default commands are scheduled when no other command is
    * running on a subsystem.
    */
-  private void configureSubsystemDefaults() {
-  }
+  private void configureSubsystemDefaults() {}
 
   /** Configures trigger -> command bindings */
   private void configureBindings() {
@@ -106,9 +99,13 @@ public class Robot extends CommandRobot implements Logged {
                   drive.resetDefaultCommand();
 
                   System.out.println("Enabled Test Mode!");
-                  drive.drive(Meters.of(10)).finallyDo(() -> {
-                    drive.rotate(Degrees.of(135)).schedule();
-                  }).schedule();
+                  drive
+                      .drive(Meters.of(10))
+                      .finallyDo(
+                          () -> {
+                            drive.rotate(Degrees.of(135)).schedule();
+                          })
+                      .schedule();
                 }));
 
     FaultLogger.onFailing(fault -> Commands.print(fault.toString()));

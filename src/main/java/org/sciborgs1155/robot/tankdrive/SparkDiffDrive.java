@@ -10,7 +10,6 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -24,192 +23,197 @@ import edu.wpi.first.wpilibj2.command.Commands;
 
 /** DifferentialDriveIO class using CANSparkMax's. */
 public class SparkDiffDrive implements DifferentialDriveIO {
-    /** Front left motor. */
-    private CANSparkMax frontLeftMotor;
+  /** Front left motor. */
+  private CANSparkMax frontLeftMotor;
 
-    /** Front left encoder. */
-    private RelativeEncoder frontLeftEncoder;
+  /** Front left encoder. */
+  private RelativeEncoder frontLeftEncoder;
 
-    /** Rear left motor. */
-    private CANSparkMax rearLeftMotor;
+  /** Rear left motor. */
+  private CANSparkMax rearLeftMotor;
 
-    /** Rear left encoder. */
-    private RelativeEncoder rearLeftEncoder;
+  /** Rear left encoder. */
+  private RelativeEncoder rearLeftEncoder;
 
-    /** Front right motor. */
-    private CANSparkMax frontRightMotor;
+  /** Front right motor. */
+  private CANSparkMax frontRightMotor;
 
-    /** Front right encoder. */
-    private RelativeEncoder frontRightEncoder;
+  /** Front right encoder. */
+  private RelativeEncoder frontRightEncoder;
 
-    /** Rear right motor. */
-    private CANSparkMax rearRightMotor;
+  /** Rear right motor. */
+  private CANSparkMax rearRightMotor;
 
-    /** Rear right encoder. */
-    private RelativeEncoder rearRightEncoder;
+  /** Rear right encoder. */
+  private RelativeEncoder rearRightEncoder;
 
-    /** Estimated Position(in Meters). */
-    private Pose2d pose;
+  /** Estimated Position(in Meters). */
+  private Pose2d pose;
 
-    /** Displacements at last estimated pose update(Meters). */
-    private double[] prevDisplacements;
+  /** Displacements at last estimated pose update(Meters). */
+  private double[] prevDisplacements;
 
-    /** Rotation at last estimated pose update(Degrees). */
-    private double prevRotation;
+  /** Rotation at last estimated pose update(Degrees). */
+  private double prevRotation;
 
-    @Override
-    public Command setLeftVoltage(Measure<Voltage> voltage) {
-        return runOnce(
-                () -> {
-                    // Updates input voltages.
-                    frontLeftMotor.setVoltage(voltage.in(Volts));
-                    rearLeftMotor.setVoltage(voltage.in(Volts));
-                })
-                .withName("setLeftVoltage(" + voltage.in(Volts) + ")")
-                .andThen(Commands.idle(this));
-    }
+  @Override
+  public Command setLeftVoltage(Measure<Voltage> voltage) {
+    return runOnce(
+            () -> {
+              // Updates input voltages.
+              frontLeftMotor.setVoltage(voltage.in(Volts));
+              rearLeftMotor.setVoltage(voltage.in(Volts));
+            })
+        .withName("setLeftVoltage(" + voltage.in(Volts) + ")")
+        .andThen(Commands.idle(this));
+  }
 
-    @Override
-    public Measure<Distance> getLeftDisplacement() {
-        // Averages displacements of both motors.
-        return Meters.of((frontLeftEncoder.getPosition() + rearLeftEncoder.getPosition()) / 2);
-    }
+  @Override
+  public Measure<Distance> getLeftDisplacement() {
+    // Averages displacements of both motors.
+    return Meters.of((frontLeftEncoder.getPosition() + rearLeftEncoder.getPosition()) / 2);
+  }
 
-    @Override
-    public Measure<Velocity<Distance>> getLeftVelocity() {
-        // Averages velocities of both motors.
-        return MetersPerSecond.of((frontLeftEncoder.getVelocity() + rearLeftEncoder.getVelocity()) / 2);
-    }
+  @Override
+  public Measure<Velocity<Distance>> getLeftVelocity() {
+    // Averages velocities of both motors.
+    return MetersPerSecond.of((frontLeftEncoder.getVelocity() + rearLeftEncoder.getVelocity()) / 2);
+  }
 
-    @Override
-    public void resetLeftEncoder() {
-        // Resets displacement measurements.
-        frontLeftEncoder.setPosition(0);
-        rearLeftEncoder.setPosition(0);
-    }
+  @Override
+  public void resetLeftEncoder() {
+    // Resets displacement measurements.
+    frontLeftEncoder.setPosition(0);
+    rearLeftEncoder.setPosition(0);
+  }
 
-    @Override
-    public Command setRightVoltage(Measure<Voltage> voltage) {
-        return runOnce(
-                () -> {
-                    // Updates input voltages.
-                    frontRightMotor.setVoltage(voltage.in(Volts));
-                    rearRightMotor.setVoltage(voltage.in(Volts));
-                })
-                .withName("setRightVoltage(" + voltage.in(Volts) + ")")
-                .andThen(Commands.idle(this));
-    }
+  @Override
+  public Command setRightVoltage(Measure<Voltage> voltage) {
+    return runOnce(
+            () -> {
+              // Updates input voltages.
+              frontRightMotor.setVoltage(voltage.in(Volts));
+              rearRightMotor.setVoltage(voltage.in(Volts));
+            })
+        .withName("setRightVoltage(" + voltage.in(Volts) + ")")
+        .andThen(Commands.idle(this));
+  }
 
-    @Override
-    public Measure<Distance> getRightDisplacement() {
-        // Averages displacements of both motors.
-        return Meters.of((frontRightEncoder.getPosition() + rearRightEncoder.getPosition()) / 2);
-    }
+  @Override
+  public Measure<Distance> getRightDisplacement() {
+    // Averages displacements of both motors.
+    return Meters.of((frontRightEncoder.getPosition() + rearRightEncoder.getPosition()) / 2);
+  }
 
-    @Override
-    public Measure<Velocity<Distance>> getRightVelocity() {
-        // Averages velocities of both motors.
-        return MetersPerSecond.of((frontRightEncoder.getVelocity() + rearRightEncoder.getVelocity()) / 2);
-    }
+  @Override
+  public Measure<Velocity<Distance>> getRightVelocity() {
+    // Averages velocities of both motors.
+    return MetersPerSecond.of(
+        (frontRightEncoder.getVelocity() + rearRightEncoder.getVelocity()) / 2);
+  }
 
-    @Override
-    public void resetRightEncoder() {
-        // Resets displacement measurements.
-        frontRightEncoder.setPosition(0);
-        rearRightEncoder.setPosition(0);
-    }
+  @Override
+  public void resetRightEncoder() {
+    // Resets displacement measurements.
+    frontRightEncoder.setPosition(0);
+    rearRightEncoder.setPosition(0);
+  }
 
-    @Override
-    public void resetEncoders() {
-        // Resets displacement measurements.
-        resetLeftEncoder();
-        resetRightEncoder();
-    }
+  @Override
+  public void resetEncoders() {
+    // Resets displacement measurements.
+    resetLeftEncoder();
+    resetRightEncoder();
+  }
 
-    @Override
-    public void close() throws Exception {
-        // Closes all of the motors.
-        frontLeftMotor.close();
-        rearLeftMotor.close();
-        frontRightMotor.close();
-        rearRightMotor.close();
-    }
+  @Override
+  public void close() throws Exception {
+    // Closes all of the motors.
+    frontLeftMotor.close();
+    rearLeftMotor.close();
+    frontRightMotor.close();
+    rearRightMotor.close();
+  }
 
-    /**
-     * Creates a new instance of this DifferentialDriveIO class.
-     * 
-     * @param motorIDs : [Front Left, Rear Left, Front Right, Rear Right]
-     */
-    public static SparkDiffDrive create(int[] motorIDs) {
-        return new SparkDiffDrive(motorIDs);
-    }
+  /**
+   * Creates a new instance of this DifferentialDriveIO class.
+   *
+   * @param motorIDs : [Front Left, Rear Left, Front Right, Rear Right]
+   */
+  public static SparkDiffDrive create(int[] motorIDs) {
+    return new SparkDiffDrive(motorIDs);
+  }
 
-    /**
-     * Creates a new instance of this DifferentialDriveIO class.
-     * 
-     * @param motorIDs : [Front Left, Rear Left, Front Right, Rear Right]
-     */
-    private SparkDiffDrive(int[] motorIDs) {
-        // Instantiates motors.
-        this.frontLeftMotor = new CANSparkMax(motorIDs[0], MotorType.kBrushless);
-        this.rearLeftMotor = new CANSparkMax(motorIDs[1], MotorType.kBrushless);
-        this.frontRightMotor = new CANSparkMax(motorIDs[2], MotorType.kBrushless);
-        this.rearRightMotor = new CANSparkMax(motorIDs[3], MotorType.kBrushless);
+  /**
+   * Creates a new instance of this DifferentialDriveIO class.
+   *
+   * @param motorIDs : [Front Left, Rear Left, Front Right, Rear Right]
+   */
+  private SparkDiffDrive(int[] motorIDs) {
+    // Instantiates motors.
+    this.frontLeftMotor = new CANSparkMax(motorIDs[0], MotorType.kBrushless);
+    this.rearLeftMotor = new CANSparkMax(motorIDs[1], MotorType.kBrushless);
+    this.frontRightMotor = new CANSparkMax(motorIDs[2], MotorType.kBrushless);
+    this.rearRightMotor = new CANSparkMax(motorIDs[3], MotorType.kBrushless);
 
-        // Resets configuration.
-        this.frontLeftMotor.restoreFactoryDefaults();
-        this.rearLeftMotor.restoreFactoryDefaults();
-        this.frontRightMotor.restoreFactoryDefaults();
-        this.rearRightMotor.restoreFactoryDefaults();
+    // Resets configuration.
+    this.frontLeftMotor.restoreFactoryDefaults();
+    this.rearLeftMotor.restoreFactoryDefaults();
+    this.frontRightMotor.restoreFactoryDefaults();
+    this.rearRightMotor.restoreFactoryDefaults();
 
-        // Sets the Idle mode to brake.
-        this.frontLeftMotor.setIdleMode(IdleMode.kBrake);
-        this.rearLeftMotor.setIdleMode(IdleMode.kBrake);
-        this.frontRightMotor.setIdleMode(IdleMode.kBrake);
-        this.rearRightMotor.setIdleMode(IdleMode.kBrake);
+    // Sets the Idle mode to brake.
+    this.frontLeftMotor.setIdleMode(IdleMode.kBrake);
+    this.rearLeftMotor.setIdleMode(IdleMode.kBrake);
+    this.frontRightMotor.setIdleMode(IdleMode.kBrake);
+    this.rearRightMotor.setIdleMode(IdleMode.kBrake);
 
-        // Burns configuration to flash.
-        this.frontLeftMotor.burnFlash();
-        this.rearLeftMotor.burnFlash();
-        this.frontRightMotor.burnFlash();
-        this.rearRightMotor.burnFlash();
+    // Burns configuration to flash.
+    this.frontLeftMotor.burnFlash();
+    this.rearLeftMotor.burnFlash();
+    this.frontRightMotor.burnFlash();
+    this.rearRightMotor.burnFlash();
 
-        // Instantiates encoders.
-        this.frontLeftEncoder = frontLeftMotor.getEncoder();
-        this.rearLeftEncoder = rearLeftMotor.getEncoder();
-        this.frontRightEncoder = frontRightMotor.getEncoder();
-        this.rearRightEncoder = rearRightMotor.getEncoder();
+    // Instantiates encoders.
+    this.frontLeftEncoder = frontLeftMotor.getEncoder();
+    this.rearLeftEncoder = rearLeftMotor.getEncoder();
+    this.frontRightEncoder = frontRightMotor.getEncoder();
+    this.rearRightEncoder = rearRightMotor.getEncoder();
 
-        // Instantiates Pose estimation.
-        pose = STARTING_POSE;
-        prevDisplacements = new double[] { 0, 0 };
-    }
+    // Instantiates Pose estimation.
+    pose = STARTING_POSE;
+    prevDisplacements = new double[] {0, 0};
+  }
 
-    @Override
-    public Pose2d getPose() {
-        return pose;
-    }
+  @Override
+  public Pose2d getPose() {
+    return pose;
+  }
 
-    @Override
-    public void updatePose(Measure<Time> deltaTime) {
-        // Calculates displacement of each side compared to previous timestamp.
-        double[] deltaDisplacements = new double[] {
-                getLeftDisplacementDouble() - prevDisplacements[0],
-                getRightDisplacementDouble() - prevDisplacements[1]
+  @Override
+  public void updatePose(Measure<Time> deltaTime) {
+    // Calculates displacement of each side compared to previous timestamp.
+    double[] deltaDisplacements =
+        new double[] {
+          getLeftDisplacementDouble() - prevDisplacements[0],
+          getRightDisplacementDouble() - prevDisplacements[1]
         };
 
-        // Amount rotated since last estimated pose update.
-        Rotation2d deltaRotation = Rotation2d
-                .fromDegrees((deltaDisplacements[1] - deltaDisplacements[0]) / TRACK_WIDTH.in(Meters));
+    // Amount rotated since last estimated pose update.
+    Rotation2d deltaRotation =
+        Rotation2d.fromDegrees(
+            (deltaDisplacements[1] - deltaDisplacements[0]) / TRACK_WIDTH.in(Meters));
 
-        // New robot heading.
-        Rotation2d heading = pose.getRotation().plus(deltaRotation);
+    // New robot heading.
+    Rotation2d heading = pose.getRotation().plus(deltaRotation);
 
-        // Amount moved since last estimated pose update.
-        Measure<Distance> deltaXTranslation = Meters.of(Math.cos((prevRotation + heading.getDegrees()) / 2));
-        Measure<Distance> deltaYTranslation = Meters.of(Math.sin((prevRotation + heading.getDegrees()) / 2));
+    // Amount moved since last estimated pose update.
+    Measure<Distance> deltaXTranslation =
+        Meters.of(Math.cos((prevRotation + heading.getDegrees()) / 2));
+    Measure<Distance> deltaYTranslation =
+        Meters.of(Math.sin((prevRotation + heading.getDegrees()) / 2));
 
-        // Updates estimated pose.
-        pose.plus(new Transform2d(deltaXTranslation, deltaYTranslation, deltaRotation));
-    }
+    // Updates estimated pose.
+    pose.plus(new Transform2d(deltaXTranslation, deltaYTranslation, deltaRotation));
+  }
 }

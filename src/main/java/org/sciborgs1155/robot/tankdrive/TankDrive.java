@@ -8,14 +8,6 @@ import static org.sciborgs1155.robot.Constants.DEADBAND;
 import static org.sciborgs1155.robot.Constants.PERIOD;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.MOTOR_IDS;
 
-import java.util.function.DoubleSupplier;
-
-import org.sciborgs1155.robot.Robot;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.DriveFFD;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.DrivePID;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationFFD;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationPID;
-
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -30,8 +22,14 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.function.DoubleSupplier;
 import monologue.Annotations.Log;
 import monologue.Logged;
+import org.sciborgs1155.robot.Robot;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.DriveFFD;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.DrivePID;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationFFD;
+import org.sciborgs1155.robot.tankdrive.DriveConstants.RotationPID;
 
 /** Differential drivetrain. */
 public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
@@ -80,10 +78,9 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   private SimpleMotorFeedforward rotationFFD;
 
   /**
-   * Updates the power of the motors based on an arbitrary power value(Tank
-   * Drive).
+   * Updates the power of the motors based on an arbitrary power value(Tank Drive).
    *
-   * @param leftInput  : Power, from [-1.0,1.0].
+   * @param leftInput : Power, from [-1.0,1.0].
    * @param rightInput : Power, from [-1.0,1.0].
    */
   public Command input(DoubleSupplier leftInput, DoubleSupplier rightInput) {
@@ -92,10 +89,9 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
   }
 
   /**
-   * Updates the power of the motors based on an arbitrary power value(Arcade
-   * Drive).
+   * Updates the power of the motors based on an arbitrary power value(Arcade Drive).
    *
-   * @param drive    : Power, from [-1.0,1.0].
+   * @param drive : Power, from [-1.0,1.0].
    * @param rotation : Power, from [-1.0,1.0].
    */
   public Command inputArcade(DoubleSupplier drive, DoubleSupplier rotation) {
@@ -116,56 +112,56 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
 
     // Runs closed loop until within tolerance of the target position.
     return run(() -> {
-      // Distance from goal pose(Meters).
-      error = getPose().getTranslation().getDistance(goalPose.getTranslation());
+          // Distance from goal pose(Meters).
+          error = getPose().getTranslation().getDistance(goalPose.getTranslation());
 
-      // PID calculations(error -> velocity(MetersPerSecond)).
-      pidOutput = drivePID.calculate(error, 0);
+          // PID calculations(error -> velocity(MetersPerSecond)).
+          pidOutput = drivePID.calculate(error, 0);
 
-      // FFD calculations(velocity -> voltage(Volts)).
-      if (distance.gt(Meters.of(0))) {
-        ffdOutput = -driveFFD.calculate(pidOutput);
-      }
-      if (distance.lt(Meters.of(0))) {
-        ffdOutput = driveFFD.calculate(pidOutput);
-      }
+          // FFD calculations(velocity -> voltage(Volts)).
+          if (distance.gt(Meters.of(0))) {
+            ffdOutput = -driveFFD.calculate(pidOutput);
+          }
+          if (distance.lt(Meters.of(0))) {
+            ffdOutput = driveFFD.calculate(pidOutput);
+          }
 
-      // Updates voltages.
-      inputHandler.tankDrive(ffdOutput, ffdOutput);
-    })
+          // Updates voltages.
+          inputHandler.tankDrive(ffdOutput, ffdOutput);
+        })
         .until(() -> drivePID.atGoal())
         .withName("drive(" + distance.in(Meters) + ")");
   }
 
-  /**
-   * Turns the robot a certain angle.
-   */
+  /** Turns the robot a certain angle. */
   public Command rotate(Measure<Angle> angle) {
     return rotateTo(Radians.of(angle.in(Radians) + getPose().getRotation().getRadians()))
         .withName("rotate(" + angle.in(Radians) + ")");
   }
 
-  /**
-   * Turns the robot to a certain orientation.
-   */
+  /** Turns the robot to a certain orientation. */
   public Command rotateTo(Measure<Angle> angle) {
     System.out.println("Rotating to " + Math.round(angle.in(Degrees)) + " degrees!");
     // The target pose after the command is done(current pose).
-    goalPose = getPose().plus(new Transform2d(Meters.of(0), Meters.of(0), Rotation2d.fromRadians(angle.in(Radians))));
+    goalPose =
+        getPose()
+            .plus(
+                new Transform2d(
+                    Meters.of(0), Meters.of(0), Rotation2d.fromRadians(angle.in(Radians))));
 
     return run(() -> {
-      // Angular distance from goal(radians)
-      error = getPose().getRotation().minus(goalPose.getRotation()).getRadians();
+          // Angular distance from goal(radians)
+          error = getPose().getRotation().minus(goalPose.getRotation()).getRadians();
 
-      // PID calculations(error -> velocity).
-      pidOutput = rotationPID.calculate(error, 0);
+          // PID calculations(error -> velocity).
+          pidOutput = rotationPID.calculate(error, 0);
 
-      // FFD calculations(velocity -> voltage).
-      ffdOutput = rotationFFD.calculate(Units.radiansToDegrees(pidOutput));
+          // FFD calculations(velocity -> voltage).
+          ffdOutput = rotationFFD.calculate(Units.radiansToDegrees(pidOutput));
 
-      // Updates voltages.
-      inputHandler.tankDrive(-ffdOutput, ffdOutput);
-    })
+          // Updates voltages.
+          inputHandler.tankDrive(-ffdOutput, ffdOutput);
+        })
         .until(() -> rotationPID.atGoal())
         .withName("rotateTo(" + angle.in(Radians) + ")");
   }
@@ -200,9 +196,10 @@ public class TankDrive extends SubsystemBase implements AutoCloseable, Logged {
 
     // Allows InputHandler to interact with motors.
     targetVoltages = new DifferentialDriveWheelVoltages(0, 0);
-    inputHandler = new DifferentialDrive(
-        (lVoltage) -> targetVoltages.left = lVoltage * speedMultiplier,
-        (rVoltage) -> targetVoltages.right = rVoltage * speedMultiplier);
+    inputHandler =
+        new DifferentialDrive(
+            (lVoltage) -> targetVoltages.left = lVoltage * speedMultiplier,
+            (rVoltage) -> targetVoltages.right = rVoltage * speedMultiplier);
 
     // Scales output to voltage.
     inputHandler.setMaxOutput(DriveConstants.MAX_VOLTAGE.in(Volts));
