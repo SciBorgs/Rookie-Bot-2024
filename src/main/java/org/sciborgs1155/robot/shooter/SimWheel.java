@@ -39,12 +39,7 @@ public class SimWheel implements WheelIO {
     return sim.getAngularVelocityRadPerSec();
   }
 
-  @Override
-  public Command setVoltage(double voltage) {
-    return Commands.run(() -> voltageSet(voltage));
-  }
-
-  public void voltageSet(double voltage) {
+  public void setVoltage(double voltage) {
     sim.setInputVoltage(voltage);
     sim.update(PERIOD.in(Units.Seconds));
   }

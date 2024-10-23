@@ -5,6 +5,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static org.sciborgs1155.robot.Ports.Wheels.TOP_WHEEL;
@@ -23,6 +24,30 @@ public class Shooter extends SubsystemBase{
     private final ArmFeedforward ff = new ArmFeedforward(1, 0, 0);
     // where do you get your encoder from?
 
+    private final WheelIO hardware;
+
+    private Shooter(WheelIO hardware) {
+        setDefaultCommand(stop());
+        this.hardware = hardware;
+    }
+
+    /**
+     * creates Shooter depending on if it's real or not.
+     * 
+     * @return a shooter with a real wheel if real, else returns shooter with sim wheel.
+     */
+    public static Shooter create() {
+        return Robot.isReal() ? new Shooter(new RealWheel()) : new Shooter(new SimWheel());
+    }
+
+    /**
+     * 
+     * creates a null shooter
+     * @return a shooter with no wheel.
+     */
+    public static Shooter none() {
+        return new Shooter(new NoWheel());
+    }
     //TODO
     // use a PIDController
     // use a SimpleFeedForward
@@ -33,12 +58,26 @@ public class Shooter extends SubsystemBase{
         // (how do you get your motor's angular position radians?)
         // give ff.calculate() your velocity setpoint!
 
+    
+
+    /**
+     * turns on the shooter wheels
+     * @return command for turning on shooter
+     */
     public Command shoot() {
-        return run(() -> changeVoltageShoot(wheelVolts));
+        return run(() -> setSpeed(wheelVelocity));
     }
 
-    private void changeVoltageShoot(double volts) {
-        motor.setVoltage(pid.calculate(encoder.getPosition(), volts) + ff.calculate(encoder.getPosition(), volts));
+    /**
+     * turns off the shooter wheels
+     * @return command for stopping the shooter 
+     */
+    public Command stop() {
+        return run(() -> setSpeed(0));
+    }
+
+    private void setSpeed(double target) {
+        motor.setVoltage(pid.calculate(encoder.getVelocity(), target) + ff.calculate(encoder.getVelocity(), target));
     }
 
 }

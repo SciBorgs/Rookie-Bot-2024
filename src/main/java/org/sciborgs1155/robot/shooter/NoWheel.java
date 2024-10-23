@@ -9,9 +9,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 public class NoWheel implements WheelIO {
 
     @Override
-    public Command setVoltage(double volts) {
-        return Commands.none();
-    }
+    public void setVoltage(double volts) {}
 
     @Override
     public double getVelocityRad() {
