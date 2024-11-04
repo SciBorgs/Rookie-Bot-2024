@@ -1,29 +1,18 @@
 package org.sciborgs1155.robot.shooter;
 
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
+import static edu.wpi.first.units.Units.*;
+import static org.sciborgs1155.robot.Constants.PERIOD;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import monologue.Annotations.Log;
 
-import static org.sciborgs1155.robot.Constants.PERIOD;
-import static edu.wpi.first.units.Units.*;
-
-import com.revrobotics.CANSparkMax;
-
-/**
- * SimWheel
- */
+/** SimWheel */
 public class SimWheel implements WheelIO {
   // private final CANSparkMax motor = new CANSparkMax(0, MotorType.kBrushless);
   // private final RelativeEncoder encoder;
 
-  @Log.NT
-  DCMotorSim sim;
+  @Log.NT DCMotorSim sim;
 
   public SimWheel() {
     // motor.setIdleMode(IdleMode.kBrake);
@@ -32,7 +21,6 @@ public class SimWheel implements WheelIO {
     // motor.burnFlash();
     // encoder = motor.getEncoder();
   }
-  
 
   @Override
   public double getVelocityRad() {
