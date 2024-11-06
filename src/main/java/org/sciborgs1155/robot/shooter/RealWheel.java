@@ -8,12 +8,13 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 
 public class RealWheel implements WheelIO {
-  private final CANSparkMax motor = new CANSparkMax(0, MotorType.kBrushless);
+  private final CANSparkMax motor;
   private final RelativeEncoder encoder;
 
-  public RealWheel() {
+  public RealWheel(boolean inverted, int motorID) {
+    motor = new CANSparkMax(motorID, MotorType.kBrushless);
     motor.setIdleMode(IdleMode.kBrake);
-    motor.setInverted(false);
+    motor.setInverted(inverted);
     motor.setSmartCurrentLimit(30);
     motor.burnFlash();
     encoder = motor.getEncoder();
