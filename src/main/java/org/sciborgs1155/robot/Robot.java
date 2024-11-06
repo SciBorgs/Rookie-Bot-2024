@@ -22,6 +22,7 @@ import org.sciborgs1155.robot.Ports.OI;
 import org.sciborgs1155.robot.commands.Autos;
 import org.sciborgs1155.robot.drive.Drive;
 import org.sciborgs1155.robot.drive.DriveConstants;
+import org.sciborgs1155.robot.shooter.Shooter;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -51,7 +52,9 @@ public class Robot extends CommandRobot implements Logged {
     configureBindings();
   }
 
-  /** Configures basic behavior during different parts of the game. */
+  /**
+   * Configures basic behavior during different parts of the game.
+   */
   private void configureGameBehavior() {
     // Configure logging with DataLogManager, Monologue, FailureManagement, and URCL
     DataLogManager.start();
@@ -64,7 +67,6 @@ public class Robot extends CommandRobot implements Logged {
       URCL.start();
     } else {
       DriverStation.silenceJoystickConnectionWarning(true);
-      sim.setVoltage(10);
     }
   }
 
