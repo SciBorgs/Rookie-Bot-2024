@@ -1,10 +1,12 @@
 package org.sciborgs1155.robot.tankdrive;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.STARTING_POSE;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.TRACK_WIDTH;
+import static org.sciborgs1155.robot.tankdrive.DriveConstants.distanceToAngle;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -13,16 +15,16 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Time;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 
-/** DifferentialDriveIO class using CANSparkMax's. */
-public class SparkDiffDrive implements DifferentialDriveIO {
+/** {@link DiffDriveIO} class using CANSparkMax controllers. */
+public class SparkDiffDrive implements DiffDriveIO {
   /** Front left motor. */
   private CANSparkMax frontLeftMotor;
 
@@ -50,7 +52,10 @@ public class SparkDiffDrive implements DifferentialDriveIO {
   /** Estimated Position(in Meters). */
   private Pose2d pose;
 
-  /** Displacements at last estimated pose update(Meters). */
+  /**
+   * Displacements at last estimated pose
+   * update(left(Meters),right(Meters),angle(degrees)).
+   */
   private double[] prevDisplacements;
 
   /** Rotation at last estimated pose update(Degrees). */
@@ -59,13 +64,12 @@ public class SparkDiffDrive implements DifferentialDriveIO {
   @Override
   public Command setLeftVoltage(Measure<Voltage> voltage) {
     return runOnce(
-            () -> {
-              // Updates input voltages.
-              frontLeftMotor.setVoltage(voltage.in(Volts));
-              rearLeftMotor.setVoltage(voltage.in(Volts));
-            })
-        .withName("setLeftVoltage(" + voltage.in(Volts) + ")")
-        .andThen(Commands.idle(this));
+        () -> {
+          // Updates input voltages.
+          frontLeftMotor.setVoltage(voltage.in(Volts));
+          rearLeftMotor.setVoltage(voltage.in(Volts));
+        })
+        .withName("setLeftVoltage(" + voltage.in(Volts) + ")");
   }
 
   @Override
@@ -90,13 +94,12 @@ public class SparkDiffDrive implements DifferentialDriveIO {
   @Override
   public Command setRightVoltage(Measure<Voltage> voltage) {
     return runOnce(
-            () -> {
-              // Updates input voltages.
-              frontRightMotor.setVoltage(voltage.in(Volts));
-              rearRightMotor.setVoltage(voltage.in(Volts));
-            })
-        .withName("setRightVoltage(" + voltage.in(Volts) + ")")
-        .andThen(Commands.idle(this));
+        () -> {
+          // Updates input voltages.
+          frontRightMotor.setVoltage(voltage.in(Volts));
+          rearRightMotor.setVoltage(voltage.in(Volts));
+        })
+        .withName("setRightVoltage(" + voltage.in(Volts) + ")");
   }
 
   @Override
@@ -124,6 +127,11 @@ public class SparkDiffDrive implements DifferentialDriveIO {
     // Resets displacement measurements.
     resetLeftEncoder();
     resetRightEncoder();
+  }
+
+  @Override
+  public Measure<Velocity<Angle>> getAngularVelocity() {
+    return DegreesPerSecond.of(distanceToAngle(Meters.of(getRightVelocity().in(MetersPerSecond))).in(Degrees));
   }
 
   @Override
@@ -182,7 +190,7 @@ public class SparkDiffDrive implements DifferentialDriveIO {
 
     // Instantiates Pose estimation.
     pose = STARTING_POSE;
-    prevDisplacements = new double[] {0, 0};
+    prevDisplacements = new double[] { 0, 0 };
   }
 
   @Override
@@ -193,25 +201,24 @@ public class SparkDiffDrive implements DifferentialDriveIO {
   @Override
   public void updatePose(Measure<Time> deltaTime) {
     // Calculates displacement of each side compared to previous timestamp.
-    double[] deltaDisplacements =
-        new double[] {
-          getLeftDisplacementDouble() - prevDisplacements[0],
-          getRightDisplacementDouble() - prevDisplacements[1]
-        };
+    double[] deltaDisplacements = new double[] {
+        getLeftDisplacement().in(Meters) - prevDisplacements[0],
+        getRightDisplacement().in(Meters) - prevDisplacements[1]
+    };
 
     // Amount rotated since last estimated pose update.
-    Rotation2d deltaRotation =
-        Rotation2d.fromDegrees(
-            (deltaDisplacements[1] - deltaDisplacements[0]) / TRACK_WIDTH.in(Meters));
+    Rotation2d deltaRotation = new Rotation2d(
+        distanceToAngle(Meters.of(deltaDisplacements[1] - deltaDisplacements[0])));
 
     // New robot heading.
     Rotation2d heading = pose.getRotation().plus(deltaRotation);
 
+    // Updates angular displacement.
+    deltaDisplacements[2] = heading.getDegrees();
+
     // Amount moved since last estimated pose update.
-    Measure<Distance> deltaXTranslation =
-        Meters.of(Math.cos((prevRotation + heading.getDegrees()) / 2));
-    Measure<Distance> deltaYTranslation =
-        Meters.of(Math.sin((prevRotation + heading.getDegrees()) / 2));
+    Measure<Distance> deltaXTranslation = Meters.of(Math.cos((prevRotation + heading.getDegrees()) / 2));
+    Measure<Distance> deltaYTranslation = Meters.of(Math.sin((prevRotation + heading.getDegrees()) / 2));
 
     // Updates estimated pose.
     pose.plus(new Transform2d(deltaXTranslation, deltaYTranslation, deltaRotation));

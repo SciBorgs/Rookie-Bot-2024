@@ -1,12 +1,46 @@
 {
+  "HALProvider": {
+    "Other Devices": {
+      "window": {
+        "visible": false
+      }
+    }
+  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
-      "/Robot/autos": "String Chooser",
-      "/Robot/drive/field": "Field2d"
+      "/Robot/drive/diffDriveData/field": "Field2d",
+      "/Robot/drive/motorData/field": "Field2d",
+      "/Robot/drive/rotationAutos/pidController": "ProfiledPIDController",
+      "/Robot/drive/rotationPIDData/pidController": "ProfiledPIDController"
+    }
+  },
+  "NetworkTables": {
+    "transitory": {
+      "Robot": {
+        "drive": {
+          "motorData": {
+            "open": true
+          },
+          "open": true,
+          "rotationPIDData": {
+            "open": true,
+            "pidController": {
+              "open": true
+            }
+          }
+        },
+        "open": true
+      },
+      "SmartDashboard": {
+        "open": true
+      }
     }
   },
   "NetworkTables Info": {
     "visible": true
+  },
+  "NetworkTables View": {
+    "visible": false
   }
 }

@@ -7,11 +7,11 @@ public final class Ports {
     public static final int DRIVER = 1;
   }
 
-  /** Ports of the drivetrain. */
+  /** Motor IDs for the drivetrain. */
   public static final class Drive {
-    public static final int FRONT_LEFT_DRIVE = 11;
-    public static final int REAR_LEFT_DRIVE = 10;
-    public static final int FRONT_RIGHT_DRIVE = 12;
+    public static final int FRONT_LEFT_DRIVE = 25;
+    public static final int REAR_LEFT_DRIVE = 37;
+    public static final int FRONT_RIGHT_DRIVE = 18;
     public static final int REAR_RIGHT_DRIVE = 13;
   }
 }

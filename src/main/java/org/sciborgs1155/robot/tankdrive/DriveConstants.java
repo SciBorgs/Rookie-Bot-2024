@@ -1,11 +1,12 @@
 package org.sciborgs1155.robot.tankdrive;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
@@ -19,8 +20,10 @@ import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N7;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Mass;
@@ -28,38 +31,38 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 
+/** Constants for differential drivetrain. */
 public final class DriveConstants {
   /** Max speed of a motor. */
-  public static final Measure<Velocity<Distance>> MAX_SPEED = MetersPerSecond.of(5.74);
+  public static final Measure<Velocity<Distance>> MAX_SPEED = MetersPerSecond.of(6.4);
 
   /** Max turning speed of the drivetrain. */
   public static final Measure<Velocity<Angle>> MAX_ANGULAR_SPEED = RadiansPerSecond.of(2 * Math.PI);
 
-  /** Robot mass. */
+  /** Mass of the robot. */
   public static final Measure<Mass> ROBOT_MASS = Kilograms.of(60);
 
   /** Moment of inertia(per meter squared). */
   public static final Measure<Mass> MOI_MASS = Kilograms.of(7.5);
 
   /** Max acceleration of a motor. */
-  public static final Measure<Velocity<Velocity<Distance>>> MAX_ACCEL =
-      MetersPerSecondPerSecond.of(8);
+  public static final Measure<Velocity<Velocity<Distance>>> MAX_ACCEL = MetersPerSecondPerSecond.of(8);
 
   /** Max turning acceleration of the drivetrain. */
-  public static final Measure<Velocity<Velocity<Angle>>> MAX_ANGULAR_ACCEL =
-      RadiansPerSecond.per(Second).of(2 * Math.PI);
+  public static final Measure<Velocity<Velocity<Angle>>> MAX_ANGULAR_ACCEL = RadiansPerSecond.per(Second)
+      .of(2);
 
   /** Distance between right and left wheels on robot */
-  public static final Measure<Distance> TRACK_WIDTH = Meters.of(0.5715);
+  public static final Measure<Distance> TRACK_WIDTH = Meters.of(0.75);
 
   /** Distance between front and back wheels on robot */
-  public static final Measure<Distance> WHEEL_BASE = Meters.of(0.5715);
+  public static final Measure<Distance> WHEEL_BASE = Meters.of(0.75);
 
-  /** Radius of wheels. */
+  /** Radius of the wheels. */
   public static final Measure<Distance> WHEEL_RADIUS = Inches.of(3);
 
-  /** PID constants used for driving. */
-  public static final class DrivePID {
+  /** Translation PID constants. */
+  public static final class TranslationPID {
     /** Proportional coefficient. */
     public static final double P = 10;
 
@@ -69,18 +72,20 @@ public final class DriveConstants {
     /** Derivative coefficient. */
     public static final double D = 0.5;
 
-    /** Error Tolerance(Meters). */
-    public static final double TOLERANCE = 0.2;
+    /** Error Tolerance. */
+    public static final Measure<Distance> TOLERANCE = Meters.of(0.1);
 
-    /** PID controller for driving(linear error -> linear velocity). */
+    /**
+     * PID controller for translation(outputs MetersPerSecond).
+     */
     public static ProfiledPIDController getController() {
-      ProfiledPIDController controller = new ProfiledPIDController(P, I, D, ROTATION_CONSTRAINTS);
-      controller.setTolerance(TOLERANCE);
+      ProfiledPIDController controller = new ProfiledPIDController(P, I, D, DRIVE_CONSTRAINTS);
+      controller.setTolerance(TOLERANCE.in(Meters));
       return controller;
     }
   }
 
-  /** PID constants used for rotating. */
+  /** Rotation PID constants. */
   public static final class RotationPID {
     /** Proportional coefficient. */
     public static final double P = 1;
@@ -89,21 +94,25 @@ public final class DriveConstants {
     public static final double I = 0.0;
 
     /** Derivative coefficient. */
-    public static final double D = 0.5;
+    public static final double D = 0.2;
 
-    /** Error Tolerance(Radians). */
-    public static final double TOLERANCE = 0.008;
+    /** Position threshold for ending the command. */
+    public static final Measure<Angle> POSITION_TOLERANCE = Degrees.of(0.01);
 
-    /** PID controller for rotating(angle error -> angule velocity). */
+    /** Velocity threshold for ending the command. */
+    public static final Measure<Velocity<Angle>> VELOCITY_TOLERANCE = DegreesPerSecond.of(0.1);
+
+    /** PID controller for rotation(outputs DegreesPerSecond). */
     public static ProfiledPIDController getController() {
       ProfiledPIDController controller = new ProfiledPIDController(P, I, D, ROTATION_CONSTRAINTS);
-      controller.setTolerance(TOLERANCE);
+      controller.setTolerance(POSITION_TOLERANCE.in(Degrees), VELOCITY_TOLERANCE.in(DegreesPerSecond));
+      controller.setGoal(new State(0, 0));
       return controller;
     }
   }
 
-  /** FFD constants used for driving. */
-  public static final class DriveFFD {
+  /** Translation FeedForward constants. */
+  public static final class TranslationFFD {
     /** Static gain. */
     public static final double S = 0.0;
 
@@ -113,13 +122,16 @@ public final class DriveConstants {
     /** Acceleration gain. */
     public static final double A = 0.01;
 
-    /** FFD controller for driving(velocity -> voltage). */
+    /** When output is below tolerance, command should be considered done. */
+    public static final Measure<Voltage> TOLERANCE = Volts.of(1);
+
+    /** FFD controller for translation(input MetersPerSecond, outputs voltage). */
     public static SimpleMotorFeedforward getController() {
       return new SimpleMotorFeedforward(S, V, A);
     }
   }
 
-  /** FFD constants used for rotation. */
+  /** Rotation FeedForward constants. */
   public static final class RotationFFD {
     /** Static gain. */
     public static final double S = 0.0;
@@ -130,44 +142,49 @@ public final class DriveConstants {
     /** Acceleration gain. */
     public static final double A = 0.01;
 
-    /** FFD controller for rotating(drivetrain angular velocity ->voltage). */
+    /** FFD controller for rotation(input DegreesPerSecond, outputs voltage). */
     public static SimpleMotorFeedforward getController() {
       return new SimpleMotorFeedforward(S, V, A);
     }
   }
 
-  /** Converts a distance(traveled by one side of the drivetrain) to an angular distance. */
-  public static final Measure<Angle> distanceToAngle(Measure<Distance> distance) {
-    return Radians.of(distance.divide(TRACK_WIDTH.times(2).times(Math.PI).in(Meters)).in(Meters));
+  /** Converts linear distances to angular distances. */
+  public static Measure<Angle> distanceToAngle(Measure<Distance> distance) {
+    return Degrees.of(distance.in(Meters) / WHEEL_BASE.times(Math.PI).divide(360).in(Meters));
   }
 
   /** Maximum voltage of wheels. */
   public static final Measure<Voltage> MAX_VOLTAGE = Volts.of(12);
 
-  /** Constraints for drive PID and FFD. */
-  public static final Constraints DRIVE_CONSTRAINTS =
-      new Constraints(MAX_SPEED.in(MetersPerSecond), MAX_ACCEL.in(MetersPerSecondPerSecond));
+  /** Trapazoidal motion profile constraints for translation. */
+  public static final Constraints DRIVE_CONSTRAINTS = new Constraints(MAX_SPEED.in(MetersPerSecond),
+      MAX_ACCEL.in(MetersPerSecondPerSecond));
 
-  /** Constraints for rotation PID and FFD. */
-  public static final Constraints ROTATION_CONSTRAINTS =
-      new Constraints(
-          MAX_ANGULAR_SPEED.in(RadiansPerSecond),
-          MAX_ANGULAR_ACCEL.in(RadiansPerSecond.per(Second)));
+  /** Trapazoidal motion profile constraints for rotation. */
+  public static final Constraints ROTATION_CONSTRAINTS = new Constraints(
+      MAX_ANGULAR_SPEED.in(DegreesPerSecond),
+      MAX_ANGULAR_ACCEL.in(DegreesPerSecond.per(Second)));
 
   /** Gearing reduction ratio. */
   public static final double REDUCTION = 7.21;
 
-  /**
-   * Measurement deviations. x and y: 0.001 m: heading: 0.001 rad: l and r velocity: 0.1 m/s: l and
-   * r position: 0.005 m:
-   */
-  public static final Vector<N7> STD_DEVS =
-      VecBuilder.fill(0.001, 0.001, 0.001, 0.1, 0.1, 0.005, 0.005);
+  /** Translation: heading : Velocity(L and R) : Position(L and R) */
+  public static final Vector<N7> STANDARD_MEASUREMENT_DEVIATIONS = VecBuilder.fill(0.001, 0.001, 0.001, 0.1, 0.1, 0.005,
+      0.005);
 
   /** Array of motor ID's(for cleaner instantiation). */
-  public static final int[] MOTOR_IDS =
-      new int[] {FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE, FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE};
+  public static final int[] MOTOR_IDS = new int[] { FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE, FRONT_RIGHT_DRIVE,
+      REAR_RIGHT_DRIVE };
 
   /** Starting pose of the robot. */
-  public static final Pose2d STARTING_POSE = new Pose2d();
+  public static final Pose2d STARTING_POSE = new Pose2d(Meters.of(5), Meters.of(5), Rotation2d.fromDegrees(0));
+
+  /** Allows for precision movement. */
+  public static final double SLOW_SPEED = 0.33;
+
+  /** Allows for quicker, broad movements. */
+  public static final double FULL_SPEED = 1.0;
+
+  /** Magnitude of joystick input to be considered negligable. */
+  public static final double DEADBAND = 0.1;
 }

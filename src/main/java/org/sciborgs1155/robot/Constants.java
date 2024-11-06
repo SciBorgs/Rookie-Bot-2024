@@ -18,13 +18,4 @@ import edu.wpi.first.units.Units;
 public class Constants {
   /** Roborio Tick Rate */
   public static final Measure<Time> PERIOD = Seconds.of(0.02);
-
-  /** Magnitude of joystick input to be considered negligable. */
-  public static final double DEADBAND = 0.1;
-
-  /** Speed multiplier of the Slow-Speed mode. */
-  public static final double SLOW_SPEED = 0.33;
-
-  /** Speed of the Full-Speed mode. */
-  public static final double FULL_SPEED = 1.0;
 }
