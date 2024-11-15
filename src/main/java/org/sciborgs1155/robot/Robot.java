@@ -1,19 +1,5 @@
 package org.sciborgs1155.robot;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Second;
-import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.*;
-
-import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ProxyCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import monologue.Annotations.Log;
-import monologue.Logged;
-import monologue.Monologue;
 import org.littletonrobotics.urcl.URCL;
 import org.sciborgs1155.lib.CommandRobot;
 import org.sciborgs1155.lib.FaultLogger;
@@ -22,6 +8,21 @@ import org.sciborgs1155.robot.Ports.OI;
 import org.sciborgs1155.robot.commands.Autos;
 import org.sciborgs1155.robot.drive.Drive;
 import org.sciborgs1155.robot.drive.DriveConstants;
+import org.sciborgs1155.robot.intake.Intake;
+
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Second;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous;
+import monologue.Annotations.Log;
+import monologue.Logged;
+import monologue.Monologue;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -37,6 +38,7 @@ public class Robot extends CommandRobot implements Logged {
 
   // SUBSYSTEMS
   private final Drive drive = Drive.create();
+  private final Intake intake = Intake.create();
 
   // COMMANDS
   @Log.NT private final Autos autos = new Autos();
@@ -50,7 +52,7 @@ public class Robot extends CommandRobot implements Logged {
     configureBindings();
   }
 
-  /** Configures basic behavior during different parts of the game. */
+  /** Configures basic behavior during differentr parts of the game. */
   private void configureGameBehavior() {
     // Configure logging with DataLogManager, Monologue, FailureManagement, and URCL
     DataLogManager.start();
@@ -96,6 +98,8 @@ public class Robot extends CommandRobot implements Logged {
                 driver::getRightX,
                 DriveConstants.MAX_ANGULAR_SPEED.in(RadiansPerSecond),
                 DriveConstants.MAX_ANGULAR_ACCEL.in(RadiansPerSecond.per(Second)))));
+
+
   }
 
   /** Configures trigger -> command bindings */
