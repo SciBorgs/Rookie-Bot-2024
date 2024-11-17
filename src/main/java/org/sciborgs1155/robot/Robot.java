@@ -22,12 +22,9 @@ import org.sciborgs1155.robot.Ports.OI;
 import org.sciborgs1155.robot.tankdrive.DiffDrive;
 
 /**
- * This class is where the bulk of the robot should be declared. Since
- * Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in
- * the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of
- * the robot (including
+ * This class is where the bulk of the robot should be declared. Since Command-based is a
+ * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
+ * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class Robot extends CommandRobot implements Logged {
@@ -89,8 +86,8 @@ public class Robot extends CommandRobot implements Logged {
     CommandScheduler.getInstance().cancelAll();
 
     return Commands.sequence(
-        Commands.print("Enabled Teleop Mode!"),
-        drivetrain.inputArcade(() -> -driver.getLeftY(), () -> -driver.getLeftX()).repeatedly())
+            Commands.print("Enabled Teleop Mode!"),
+            drivetrain.inputArcade(() -> -driver.getLeftY(), () -> -driver.getLeftX()).repeatedly())
         .withName("Teleop Command")
         .finallyDo(() -> System.out.println("Disabled Teleop Mode!"));
   }
@@ -104,9 +101,7 @@ public class Robot extends CommandRobot implements Logged {
         .finallyDo(() -> System.out.println("Disabled Test Mode!"));
   }
 
-  /**
-   * Runs once when autonomous mode is enabled. Binded to 'autonomous' trigger.
-   */
+  /** Runs once when autonomous mode is enabled. Binded to 'autonomous' trigger. */
   private Command autonomousCommand() {
     CommandScheduler.getInstance().cancelAll();
 

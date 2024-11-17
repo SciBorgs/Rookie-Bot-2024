@@ -9,8 +9,6 @@ import static org.sciborgs1155.robot.tankdrive.DriveConstants.STARTING_POSE;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.clampVoltage;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.distanceToAngle;
 
-import org.sciborgs1155.lib.FaultLogger;
-
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -24,6 +22,7 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Time;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
+import org.sciborgs1155.lib.FaultLogger;
 
 /** {@link DiffDriveIO} class using CANSparkMax controllers. */
 public class SparkDiffDrive implements DiffDriveIO {
