@@ -1,12 +1,15 @@
 package org.sciborgs1155.robot.tankdrive;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.STARTING_POSE;
+import static org.sciborgs1155.robot.tankdrive.DriveConstants.clampVoltage;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.distanceToAngle;
+
+import org.sciborgs1155.lib.FaultLogger;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -14,213 +17,170 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Time;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj2.command.Command;
 
 /** {@link DiffDriveIO} class using CANSparkMax controllers. */
 public class SparkDiffDrive implements DiffDriveIO {
-  /** Front left motor. */
   private CANSparkMax frontLeftMotor;
-
-  /** Front left encoder. */
-  private RelativeEncoder frontLeftEncoder;
-
-  /** Rear left motor. */
   private CANSparkMax rearLeftMotor;
-
-  /** Rear left encoder. */
-  private RelativeEncoder rearLeftEncoder;
-
-  /** Front right motor. */
   private CANSparkMax frontRightMotor;
-
-  /** Front right encoder. */
-  private RelativeEncoder frontRightEncoder;
-
-  /** Rear right motor. */
   private CANSparkMax rearRightMotor;
 
-  /** Rear right encoder. */
+  private RelativeEncoder rearLeftEncoder;
+  private RelativeEncoder frontLeftEncoder;
+  private RelativeEncoder frontRightEncoder;
   private RelativeEncoder rearRightEncoder;
 
-  /** Estimated Position(in Meters). */
-  private Pose2d pose;
-
   /**
-   * Displacements at last estimated pose
-   * update(left(Meters),right(Meters),angle(degrees)).
+   * Displacements of motors, and rotation of the robot at last odometry update (1: Left
+   * Displacement, 2: Right Displacement, 3: Rotation, 4: Angular Velocity). Used for calculating
+   * robot rotation / angular velocity. (since we don't have a gyro :/ ) Angular velocity is simply
+   * being recorded for 'getAngularVelocity' method
    */
-  private double[] prevDisplacements;
+  private double[] previousDisplacements = new double[] {0.0, 0.0, 0.0, 0.0};
 
-  /** Rotation at last estimated pose update(Degrees). */
-  private double prevRotation;
+  private final DifferentialDriveOdometry odometry =
+      new DifferentialDriveOdometry(STARTING_POSE.getRotation(), 0, 0, STARTING_POSE);
 
   @Override
-  public Command setLeftVoltage(Measure<Voltage> voltage) {
-    return runOnce(
-        () -> {
-          // Updates input voltages.
-          frontLeftMotor.setVoltage(voltage.in(Volts));
-          rearLeftMotor.setVoltage(voltage.in(Volts));
-        })
-        .withName("setLeftVoltage(" + voltage.in(Volts) + ")");
+  public Measure<Voltage> setLeftVoltage(Measure<Voltage> voltage) {
+    frontRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
+    rearRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
+
+    return voltage;
   }
 
+  /**
+   * Total displacement of the left side of the drivetrain (averages the velocities of both motors
+   * for robustness): i.e. both motors going opposite directions
+   */
   @Override
   public Measure<Distance> getLeftDisplacement() {
-    // Averages displacements of both motors.
     return Meters.of((frontLeftEncoder.getPosition() + rearLeftEncoder.getPosition()) / 2);
   }
 
+  /**
+   * The current velocity of the left side of the drivetrain (averages the velocities of both motors
+   * for robustness): i.e. both motors going opposite directions
+   */
   @Override
   public Measure<Velocity<Distance>> getLeftVelocity() {
-    // Averages velocities of both motors.
     return MetersPerSecond.of((frontLeftEncoder.getVelocity() + rearLeftEncoder.getVelocity()) / 2);
   }
 
   @Override
   public void resetLeftEncoder() {
-    // Resets displacement measurements.
     frontLeftEncoder.setPosition(0);
     rearLeftEncoder.setPosition(0);
   }
 
   @Override
-  public Command setRightVoltage(Measure<Voltage> voltage) {
-    return runOnce(
-        () -> {
-          // Updates input voltages.
-          frontRightMotor.setVoltage(voltage.in(Volts));
-          rearRightMotor.setVoltage(voltage.in(Volts));
-        })
-        .withName("setRightVoltage(" + voltage.in(Volts) + ")");
+  public Measure<Voltage> setRightVoltage(Measure<Voltage> voltage) {
+    frontRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
+    rearRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
+
+    return voltage;
   }
 
+  /**
+   * Total displacement of the right side of the drivetrain (averages the velocities of both motors
+   * for robustness): i.e. both motors going opposite directions
+   */
   @Override
   public Measure<Distance> getRightDisplacement() {
-    // Averages displacements of both motors.
     return Meters.of((frontRightEncoder.getPosition() + rearRightEncoder.getPosition()) / 2);
   }
 
+  /**
+   * The current velocity of the right side of the drivetrain (averages the velocities of both
+   * motors for robustness): i.e. both motors going opposite directions
+   */
   @Override
   public Measure<Velocity<Distance>> getRightVelocity() {
-    // Averages velocities of both motors.
     return MetersPerSecond.of(
         (frontRightEncoder.getVelocity() + rearRightEncoder.getVelocity()) / 2);
   }
 
   @Override
+  public Measure<Velocity<Angle>> getAngularVelocity() {
+    return DegreesPerSecond.of(previousDisplacements[3]);
+  }
+
+  @Override
   public void resetRightEncoder() {
-    // Resets displacement measurements.
     frontRightEncoder.setPosition(0);
     rearRightEncoder.setPosition(0);
   }
 
-  @Override
-  public void resetEncoders() {
-    // Resets displacement measurements.
-    resetLeftEncoder();
-    resetRightEncoder();
-  }
-
-  @Override
-  public Measure<Velocity<Angle>> getAngularVelocity() {
-    return DegreesPerSecond.of(distanceToAngle(Meters.of(getRightVelocity().in(MetersPerSecond))).in(Degrees));
-  }
-
-  @Override
-  public void close() throws Exception {
-    // Closes all of the motors.
-    frontLeftMotor.close();
-    rearLeftMotor.close();
-    frontRightMotor.close();
-    rearRightMotor.close();
-  }
-
   /**
-   * Creates a new instance of this DifferentialDriveIO class.
-   *
    * @param motorIDs : [Front Left, Rear Left, Front Right, Rear Right]
    */
-  public static SparkDiffDrive create(int[] motorIDs) {
-    return new SparkDiffDrive(motorIDs);
-  }
-
-  /**
-   * Creates a new instance of this DifferentialDriveIO class.
-   *
-   * @param motorIDs : [Front Left, Rear Left, Front Right, Rear Right]
-   */
-  private SparkDiffDrive(int[] motorIDs) {
-    // Instantiates motors.
+  public SparkDiffDrive(int[] motorIDs) {
     this.frontLeftMotor = new CANSparkMax(motorIDs[0], MotorType.kBrushless);
     this.rearLeftMotor = new CANSparkMax(motorIDs[1], MotorType.kBrushless);
     this.frontRightMotor = new CANSparkMax(motorIDs[2], MotorType.kBrushless);
     this.rearRightMotor = new CANSparkMax(motorIDs[3], MotorType.kBrushless);
 
-    // Resets configuration.
-    this.frontLeftMotor.restoreFactoryDefaults();
-    this.rearLeftMotor.restoreFactoryDefaults();
-    this.frontRightMotor.restoreFactoryDefaults();
-    this.rearRightMotor.restoreFactoryDefaults();
-
-    // Sets the Idle mode to brake.
-    this.frontLeftMotor.setIdleMode(IdleMode.kBrake);
-    this.rearLeftMotor.setIdleMode(IdleMode.kBrake);
-    this.frontRightMotor.setIdleMode(IdleMode.kBrake);
-    this.rearRightMotor.setIdleMode(IdleMode.kBrake);
-
-    // Burns configuration to flash.
-    this.frontLeftMotor.burnFlash();
-    this.rearLeftMotor.burnFlash();
-    this.frontRightMotor.burnFlash();
-    this.rearRightMotor.burnFlash();
-
-    // Instantiates encoders.
     this.frontLeftEncoder = frontLeftMotor.getEncoder();
     this.rearLeftEncoder = rearLeftMotor.getEncoder();
     this.frontRightEncoder = frontRightMotor.getEncoder();
     this.rearRightEncoder = rearRightMotor.getEncoder();
 
-    // Instantiates Pose estimation.
-    pose = STARTING_POSE;
-    prevDisplacements = new double[] { 0, 0 };
+    this.frontLeftMotor.restoreFactoryDefaults();
+    this.rearLeftMotor.restoreFactoryDefaults();
+    this.frontRightMotor.restoreFactoryDefaults();
+    this.rearRightMotor.restoreFactoryDefaults();
+
+    this.frontLeftMotor.setIdleMode(IdleMode.kBrake);
+    this.rearLeftMotor.setIdleMode(IdleMode.kBrake);
+    this.frontRightMotor.setIdleMode(IdleMode.kBrake);
+    this.rearRightMotor.setIdleMode(IdleMode.kBrake);
+
+    this.frontLeftMotor.burnFlash();
+    this.rearLeftMotor.burnFlash();
+    this.frontRightMotor.burnFlash();
+    this.rearRightMotor.burnFlash();
+
+    FaultLogger.register(frontLeftMotor);
+    FaultLogger.register(rearLeftMotor);
+    FaultLogger.register(frontRightMotor);
+    FaultLogger.register(rearRightMotor);
   }
 
   @Override
   public Pose2d getPose() {
-    return pose;
+    return odometry.getPoseMeters();
   }
 
   @Override
-  public void updatePose(Measure<Time> deltaTime) {
-    // Calculates displacement of each side compared to previous timestamp.
-    double[] deltaDisplacements = new double[] {
-        getLeftDisplacement().in(Meters) - prevDisplacements[0],
-        getRightDisplacement().in(Meters) - prevDisplacements[1]
-    };
+  public Pose2d updatePose(Measure<Time> deltaTime) {
+    // For calculating robot rotation
+    double[] deltaDisplacements =
+        new double[] {
+          getLeftDisplacement().in(Meters) - previousDisplacements[0],
+          getRightDisplacement().in(Meters) - previousDisplacements[1]
+        };
+    Rotation2d deltaRotation =
+        new Rotation2d(distanceToAngle(Meters.of(deltaDisplacements[1] - deltaDisplacements[0])));
 
-    // Amount rotated since last estimated pose update.
-    Rotation2d deltaRotation = new Rotation2d(
-        distanceToAngle(Meters.of(deltaDisplacements[1] - deltaDisplacements[0])));
+    Rotation2d newRotation = getPose().getRotation().plus(deltaRotation);
+    odometry.update(
+        newRotation, getLeftDisplacement().in(Meters), getRightDisplacement().in(Meters));
 
-    // New robot heading.
-    Rotation2d heading = pose.getRotation().plus(deltaRotation);
+    Measure<Velocity<Angle>> angularVelocity =
+        DegreesPerSecond.of(deltaRotation.getDegrees() / deltaTime.in(Seconds));
 
-    // Updates angular displacement.
-    deltaDisplacements[2] = heading.getDegrees();
+    previousDisplacements[0] = getLeftDisplacement().in(Meters);
+    previousDisplacements[1] = getRightDisplacement().in(Meters);
+    previousDisplacements[2] = newRotation.getDegrees();
+    previousDisplacements[3] = angularVelocity.in(DegreesPerSecond);
 
-    // Amount moved since last estimated pose update.
-    Measure<Distance> deltaXTranslation = Meters.of(Math.cos((prevRotation + heading.getDegrees()) / 2));
-    Measure<Distance> deltaYTranslation = Meters.of(Math.sin((prevRotation + heading.getDegrees()) / 2));
-
-    // Updates estimated pose.
-    pose.plus(new Transform2d(deltaXTranslation, deltaYTranslation, deltaRotation));
+    return getPose();
   }
 }

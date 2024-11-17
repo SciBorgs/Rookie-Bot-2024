@@ -1,8 +1,8 @@
 package org.sciborgs1155.robot;
 
-import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous;
+import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.disabled;
 import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.teleop;
 import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.test;
 import static org.sciborgs1155.robot.Constants.PERIOD;
@@ -15,12 +15,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import monologue.Logged;
 import monologue.Monologue;
-
 import org.littletonrobotics.urcl.URCL;
 import org.sciborgs1155.lib.CommandRobot;
 import org.sciborgs1155.lib.FaultLogger;
 import org.sciborgs1155.robot.Ports.OI;
-import org.sciborgs1155.robot.tankdrive.DriveConstants;
 import org.sciborgs1155.robot.tankdrive.DiffDrive;
 
 /**
@@ -34,15 +32,15 @@ import org.sciborgs1155.robot.tankdrive.DiffDrive;
  */
 public class Robot extends CommandRobot implements Logged {
 
-  /** Controls intake, shooter, and climber. */
+  /** Controls intake, shooter, and climber */
   @SuppressWarnings("unused")
   private final CommandXboxController operator = new CommandXboxController(OI.OPERATOR);
 
-  /** Controls drivetrain. */
+  /** Controls drivetrain */
+  @SuppressWarnings("unused")
   private final CommandXboxController driver = new CommandXboxController(OI.DRIVER);
 
-  /** Drivetrain Subsystem. */
-  private final DiffDrive drive = DiffDrive.create();
+  private final DiffDrive drivetrain = DiffDrive.create(isSimulation());
 
   /** The robot contains subsystems, OI devices, and commands. */
   public Robot() {
@@ -64,7 +62,7 @@ public class Robot extends CommandRobot implements Logged {
     addPeriodic(FaultLogger::update, PERIOD.in(Seconds));
     System.out.println("Setup Fault Logger!");
 
-    addPeriodic(drive::updateVoltages, PERIOD.in(Seconds));
+    addPeriodic(drivetrain::updateVoltages, PERIOD.in(Seconds));
 
     if (!isReal()) {
       DriverStation.silenceJoystickConnectionWarning(true);
@@ -78,54 +76,49 @@ public class Robot extends CommandRobot implements Logged {
 
   /** Configures command bindings */
   private void configureBindings() {
-    teleop().onTrue(teleOpCommand());
+    teleop().onTrue(teleopCommand());
     test().onTrue(testCommand());
     autonomous().onTrue(autonomousCommand());
+    disabled().onTrue(disabledCommand());
 
-    System.out.println("Configured Bindings!");
+    System.out.println("Configured Command Bindings!");
   }
 
-  /* Runs when teleop mode is enabled. */
-  private Command teleOpCommand() {
+  /** Runs once when teleop mode is enabled. Binded to 'teleop' trigger. */
+  private Command teleopCommand() {
     CommandScheduler.getInstance().cancelAll();
 
     return Commands.sequence(
-        Commands.print("Enabled Teleop!"),
-        Commands.runOnce(
-            () -> {
-              driver
-                  .leftBumper()
-                  .or(driver.rightBumper())
-                  .onTrue(Commands.runOnce(() -> drive.setSpeedMultiplier(DriveConstants.FULL_SPEED)))
-                  .onFalse(Commands.run(() -> drive.setSpeedMultiplier(DriveConstants.SLOW_SPEED)));
-
-              drive.setDefaultCommand(
-                  drive.inputArcade(
-                      () -> driver.getRawAxis(1),
-                      () -> driver.getRawAxis(0)));
-            }))
-        .withName("TeleOp Command");
+        Commands.print("Enabled Teleop Mode!"),
+        drivetrain.inputArcade(() -> -driver.getLeftY(), () -> -driver.getLeftX()).repeatedly())
+        .withName("Teleop Command")
+        .finallyDo(() -> System.out.println("Disabled Teleop Mode!"));
   }
 
-  /* Runs when test mode is enabled. */
+  /** Runs once when test mode is enabled. Binded to 'test' trigger. */
   private Command testCommand() {
     CommandScheduler.getInstance().cancelAll();
 
-    return Commands.sequence(
-        Commands.print("Enabled Test Mode!"),
-        drive.rotate(Degrees.of(90)), drive.rotate(Degrees.of(90))).withName("Test Command");
-
-    // return Commands.sequence(
-    // Commands.print("Enabled Test Mode!"),
-    // drive.rotate(Degrees.of(90)), drive.rotate(Degrees.of(90)),
-    // drive.rotate(Degrees.of(90)),
-    // drive.rotate(Degrees.of(90))).withName("Test Command");
+    return Commands.sequence(Commands.print("Enabled Test Mode!"))
+        .withName("Test Command")
+        .finallyDo(() -> System.out.println("Disabled Test Mode!"));
   }
 
-  /* Runs when autonomous mode is enabled. */
+  /**
+   * Runs once when autonomous mode is enabled. Binded to 'autonomous' trigger.
+   */
   private Command autonomousCommand() {
     CommandScheduler.getInstance().cancelAll();
 
-    return Commands.sequence(Commands.print("Enabled Autonomous Mode!")).withName("Autonomous Command");
+    return Commands.sequence(Commands.print("Enabled Autonomous Mode!"))
+        .withName("Autonomous Command")
+        .finallyDo(() -> System.out.println("Disabled Autonomous Mode!"));
+  }
+
+  /** Runs once when robot is disabled. Binded to 'disabled' trigger. */
+  private Command disabledCommand() {
+    CommandScheduler.getInstance().cancelAll();
+
+    return Commands.sequence(Commands.print("Disabled Robot!")).withName("Disabled Command");
   }
 }

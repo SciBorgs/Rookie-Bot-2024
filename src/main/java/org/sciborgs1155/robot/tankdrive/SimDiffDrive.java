@@ -7,14 +7,14 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.MOI_MASS;
+import static org.sciborgs1155.robot.tankdrive.DriveConstants.MOMENT_OF_INERTIA;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.REDUCTION;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.ROBOT_MASS;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.STANDARD_MEASUREMENT_DEVIATIONS;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.STARTING_POSE;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.TRACK_WIDTH;
 import static org.sciborgs1155.robot.tankdrive.DriveConstants.WHEEL_RADIUS;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.distanceToAngle;
+import static org.sciborgs1155.robot.tankdrive.DriveConstants.clampVoltage;
 
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -26,32 +26,37 @@ import edu.wpi.first.units.Time;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 
 /** Simulated {@link DiffDriveIO} class using 4 NEOs. */
 public class SimDiffDrive implements DiffDriveIO {
-  /** Simulated drivetrain of 4 REV NEO motors. */
-  private final DifferentialDrivetrainSim simulation = new DifferentialDrivetrainSim(
-      DCMotor.getNEO(2),
-      REDUCTION,
-      MOI_MASS.in(Kilograms),
-      ROBOT_MASS.in(Kilograms),
-      WHEEL_RADIUS.in(Meters),
-      TRACK_WIDTH.in(Meters),
-      STANDARD_MEASUREMENT_DEVIATIONS);
+  /** Simulated drivetrain with 4 NEO motors */
+  private final DifferentialDrivetrainSim simulation =
+      new DifferentialDrivetrainSim(
+          DCMotor.getNEO(2),
+          REDUCTION,
+          MOMENT_OF_INERTIA.in(Kilograms),
+          ROBOT_MASS.in(Kilograms),
+          WHEEL_RADIUS.in(Meters),
+          TRACK_WIDTH.in(Meters),
+          STANDARD_MEASUREMENT_DEVIATIONS);
 
-  /** Target voltages(allows for streamlined voltage setting). */
+  /**
+   * Current Left and Right voltages of the drivetrain (since both have to be updated at once with
+   * sim, they are updated in the 'updatePose'method). These values are updated using the
+   * 'set[Left/Right]Voltage' methods
+   */
   private final DifferentialDriveWheelVoltages voltages = new DifferentialDriveWheelVoltages(0, 0);
 
-  /** If this class is closed, the simulation will stop updating. */
-  private boolean isClosed = false;
+  /** Around robot orgin(for use with 'getAngularVelocity' method) */
+  private Measure<Velocity<Angle>> angularVelocity = DegreesPerSecond.of(0);
+
+  /** For calculating angular velocity(rotation at previous simulation update) */
+  private Measure<Angle> previousRotation = Degrees.of(0);
 
   @Override
-  public Command setLeftVoltage(Measure<Voltage> voltage) {
-    return runOnce(() -> voltages.left = voltage.in(Volts))
-        .withName("setLeftVoltage(" + voltage.in(Volts) + ")")
-        .andThen(Commands.idle(this));
+  public Measure<Voltage> setLeftVoltage(Measure<Voltage> voltage) {
+    voltages.left = clampVoltage(voltage).in(Volts);
+    return voltage;
   }
 
   @Override
@@ -64,16 +69,14 @@ public class SimDiffDrive implements DiffDriveIO {
     return MetersPerSecond.of(simulation.getLeftVelocityMetersPerSecond());
   }
 
-  /** NOTE: Does nothing. */
+  /** NOTE: you can't reset sim encoders (This method does absolutely nothing) */
   @Override
-  public void resetLeftEncoder() {
-  }
+  public void resetLeftEncoder() {}
 
   @Override
-  public Command setRightVoltage(Measure<Voltage> voltage) {
-    return runOnce(() -> voltages.right = voltage.in(Volts))
-        .withName("setRightVoltage(" + voltage.in(Volts) + ")")
-        .andThen(Commands.idle(this));
+  public Measure<Voltage> setRightVoltage(Measure<Voltage> voltage) {
+    voltages.right = clampVoltage(voltage).in(Volts);
+    return voltage;
   }
 
   @Override
@@ -86,17 +89,16 @@ public class SimDiffDrive implements DiffDriveIO {
     return MetersPerSecond.of(simulation.getRightVelocityMetersPerSecond());
   }
 
-  /** NOTE: Does nothing. */
   @Override
-  public void resetRightEncoder() {
+  public Measure<Velocity<Angle>> getAngularVelocity() {
+    return angularVelocity;
   }
 
-  /** Creates a new instance of this DifferentialDriveIO class. */
-  public static SimDiffDrive create() {
-    return new SimDiffDrive();
-  }
+  /** NOTE: you can't reset sim encoders (This method does absolutely nothing) */
+  @Override
+  public void resetRightEncoder() {}
 
-  private SimDiffDrive() {
+  public SimDiffDrive() {
     simulation.setPose(STARTING_POSE);
   }
 
@@ -105,23 +107,21 @@ public class SimDiffDrive implements DiffDriveIO {
     return simulation.getPose();
   }
 
+  /** NOTE: you can't reset sim encoders (This method does absolutely nothing) */
   @Override
-  public Measure<Velocity<Angle>> getAngularVelocity() {
-    return DegreesPerSecond.of(distanceToAngle(Meters.of(getRightVelocity().in(MetersPerSecond) - getLeftVelocity().in(MetersPerSecond))).in(Degrees));
-  }
+  public void resetEncoders() {}
 
   @Override
-  public void updatePose(Measure<Time> deltaTime) {
-    if (isClosed) {
-      return;
-    }
+  public Pose2d updatePose(Measure<Time> deltaTime) {
     simulation.setInputs(voltages.left, voltages.right);
     simulation.update(deltaTime.in(Seconds));
-  }
 
+    Measure<Angle> currentRotation = Degrees.of(simulation.getPose().getRotation().getDegrees());
+    Measure<Angle> deltaRotation = currentRotation.minus(previousRotation);
 
-  @Override
-  public void close() throws Exception {
+    angularVelocity = DegreesPerSecond.of(deltaRotation.in(Degrees) / deltaTime.in(Seconds));
+    previousRotation = currentRotation;
+
+    return getPose();
   }
-  
 }

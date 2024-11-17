@@ -12,7 +12,8 @@
       "/Robot/drive/diffDriveData/field": "Field2d",
       "/Robot/drive/motorData/field": "Field2d",
       "/Robot/drive/rotationAutos/pidController": "ProfiledPIDController",
-      "/Robot/drive/rotationPIDData/pidController": "ProfiledPIDController"
+      "/Robot/drive/rotationPIDData/pidController": "ProfiledPIDController",
+      "/Robot/drivetrain/motorData/field": "Field2d"
     }
   },
   "NetworkTables": {
