@@ -7,7 +7,7 @@ public class NoWheel implements WheelIO {
   public void setVoltage(double volts) {}
 
   @Override
-  public double getVelocityRad() {
+  public double getVelocity() {
     return 0;
   }
 }

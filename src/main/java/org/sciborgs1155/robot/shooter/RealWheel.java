@@ -1,6 +1,8 @@
 package org.sciborgs1155.robot.shooter;
 
 import static org.sciborgs1155.robot.Ports.Wheels.*;
+import static org.sciborgs1155.robot.shooter.ShooterConstants.POSITION_FACTOR;
+import static org.sciborgs1155.robot.shooter.ShooterConstants.VELOCITY_FACTOR;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -18,10 +20,12 @@ public class RealWheel implements WheelIO {
     motor.setSmartCurrentLimit(30);
     motor.burnFlash();
     encoder = motor.getEncoder();
+    encoder.setPositionConversionFactor(POSITION_FACTOR);
+    encoder.setVelocityConversionFactor(VELOCITY_FACTOR);
   }
 
   @Override
-  public double getVelocityRad() {
+  public double getVelocity() {
     return encoder.getVelocity();
   }
 

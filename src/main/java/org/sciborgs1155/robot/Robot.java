@@ -52,9 +52,7 @@ public class Robot extends CommandRobot implements Logged {
     configureBindings();
   }
 
-  /**
-   * Configures basic behavior during different parts of the game.
-   */
+  /** Configures basic behavior during different parts of the game. */
   private void configureGameBehavior() {
     // Configure logging with DataLogManager, Monologue, FailureManagement, and URCL
     DataLogManager.start();
@@ -106,8 +104,6 @@ public class Robot extends CommandRobot implements Logged {
   private void configureBindings() {
     autonomous().whileTrue(new ProxyCommand(autos::get));
     FaultLogger.onFailing(f -> Commands.print(f.toString()));
-
-    teleop().onTrue(shooter.shoot());
 
     driver
         .leftBumper()
