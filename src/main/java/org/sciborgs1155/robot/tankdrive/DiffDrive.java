@@ -43,7 +43,7 @@ public class DiffDrive extends SubsystemBase implements Logged {
    * @param rightInput : Power, from [-1.0,1.0]
    */
   public Command inputTank(DoubleSupplier leftInput, DoubleSupplier rightInput) {
-    return runOnce(() -> inputHandler.tankDrive(leftInput.getAsDouble(), rightInput.getAsDouble()))
+    return run(() -> inputHandler.tankDrive(leftInput.getAsDouble(), rightInput.getAsDouble()))
         .withName("inputTank(" + leftInput.getAsDouble() + "," + rightInput.getAsDouble() + ")");
   }
 
@@ -54,7 +54,7 @@ public class DiffDrive extends SubsystemBase implements Logged {
    * @param rotation : Power, from [-1.0,1.0]
    */
   public Command inputArcade(DoubleSupplier drive, DoubleSupplier rotation) {
-    return runOnce(() -> inputHandler.arcadeDrive(drive.getAsDouble(), rotation.getAsDouble()))
+    return run(() -> inputHandler.arcadeDrive(drive.getAsDouble(), rotation.getAsDouble()))
         .withName("inputArcade(" + drive.getAsDouble() + "," + rotation.getAsDouble() + ")");
   }
 

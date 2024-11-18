@@ -49,8 +49,8 @@ public class SparkDiffDrive implements DiffDriveIO {
 
   @Override
   public Measure<Voltage> setLeftVoltage(Measure<Voltage> voltage) {
-    frontRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
-    rearRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
+    frontLeftMotor.setVoltage(clampVoltage(voltage).in(Volts));
+    rearLeftMotor.setVoltage(clampVoltage(voltage).in(Volts));
 
     return voltage;
   }
@@ -130,6 +130,9 @@ public class SparkDiffDrive implements DiffDriveIO {
     this.rearLeftEncoder = rearLeftMotor.getEncoder();
     this.frontRightEncoder = frontRightMotor.getEncoder();
     this.rearRightEncoder = rearRightMotor.getEncoder();
+
+    // this.frontLeftMotor.setInverted(true);
+    // this.rearLeftMotor.setInverted(true);
 
     this.frontLeftMotor.restoreFactoryDefaults();
     this.rearLeftMotor.restoreFactoryDefaults();

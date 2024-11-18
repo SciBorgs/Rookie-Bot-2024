@@ -87,7 +87,7 @@ public class Robot extends CommandRobot implements Logged {
 
     return Commands.sequence(
             Commands.print("Enabled Teleop Mode!"),
-            drivetrain.inputArcade(() -> -driver.getLeftY(), () -> -driver.getLeftX()).repeatedly())
+            drivetrain.inputArcade(() -> driver.getLeftY(), () -> driver.getRightX()))
         .withName("Teleop Command")
         .finallyDo(() -> System.out.println("Disabled Teleop Mode!"));
   }
