@@ -1,14 +1,14 @@
-package org.sciborgs1155.robot.tankdrive;
+package org.sciborgs1155.robot.drivetrain;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 import static org.sciborgs1155.robot.Constants.PERIOD;
-import static org.sciborgs1155.robot.Constants.robotIsReal;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.MAX_VOLTAGE;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.MOTOR_IDS;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.SLOW_SPEED;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.MAX_VOLTAGE;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.MOTOR_IDS;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.SLOW_SPEED;
 
+import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,7 +17,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 import monologue.Annotations.Log;
 import monologue.Logged;
-import org.sciborgs1155.robot.tankdrive.DriveConstants.DiffDrivetrainLogger;
+import org.sciborgs1155.robot.Robot;
+import org.sciborgs1155.robot.drivetrain.DriveConstants.DiffDrivetrainLogger;
 
 /** Differential drivetrain. */
 public class DiffDrive extends SubsystemBase implements Logged {
@@ -27,14 +28,17 @@ public class DiffDrive extends SubsystemBase implements Logged {
   /** Scales voltage output */
   private double speedMultiplier = SLOW_SPEED;
 
-  /** Stores motor data(for logging and streamlining voltage setting) */
-  @Log.NT private final DiffDrivetrainLogger motorData = new DiffDrivetrainLogger();
+  /** Stores commanded motor voltages for streamlining */
+  private DifferentialDriveWheelVoltages voltages = new DifferentialDriveWheelVoltages(0, 0);
 
-  /** Updates votages in 'motorData' class(with speedMultiplier) */
+  /** Stores data for logging */
+  @Log.NT private final DiffDrivetrainLogger logger = new DiffDrivetrainLogger();
+
+  /** Updates votages in 'logger' class(with speedMultiplier) */
   private final DifferentialDrive inputHandler =
       new DifferentialDrive(
-          (leftVoltage) -> motorData.targetLeftVoltage = leftVoltage * speedMultiplier,
-          (rightVoltage) -> motorData.targetRightVoltage = rightVoltage * speedMultiplier);
+          (leftVoltage) -> voltages.left = leftVoltage * speedMultiplier,
+          (rightVoltage) -> voltages.right = rightVoltage * speedMultiplier);
 
   /**
    * Updates the power of the motors based on joystick input (Tank Drive)
@@ -43,7 +47,7 @@ public class DiffDrive extends SubsystemBase implements Logged {
    * @param rightInput : Power, from [-1.0,1.0]
    */
   public Command inputTank(DoubleSupplier leftInput, DoubleSupplier rightInput) {
-    return runOnce(() -> inputHandler.tankDrive(leftInput.getAsDouble(), rightInput.getAsDouble()))
+    return run(() -> inputHandler.tankDrive(leftInput.getAsDouble(), rightInput.getAsDouble()))
         .withName("inputTank(" + leftInput.getAsDouble() + "," + rightInput.getAsDouble() + ")");
   }
 
@@ -54,7 +58,7 @@ public class DiffDrive extends SubsystemBase implements Logged {
    * @param rotation : Power, from [-1.0,1.0]
    */
   public Command inputArcade(DoubleSupplier drive, DoubleSupplier rotation) {
-    return runOnce(() -> inputHandler.arcadeDrive(drive.getAsDouble(), rotation.getAsDouble()))
+    return run(() -> inputHandler.arcadeDrive(drive.getAsDouble(), rotation.getAsDouble()))
         .withName("inputArcade(" + drive.getAsDouble() + "," + rotation.getAsDouble() + ")");
   }
 
@@ -78,7 +82,7 @@ public class DiffDrive extends SubsystemBase implements Logged {
     resetDefaultCommand();
 
     // Disables safety warnings on simulated drivetrain.
-    if (!robotIsReal) {
+    if (!Robot.isReal()) {
       inputHandler.setSafetyEnabled(false);
     }
   }
@@ -100,16 +104,19 @@ public class DiffDrive extends SubsystemBase implements Logged {
 
   /** Updates motor voltages and odometry(to be called periodically) */
   public void updateVoltages() {
-    motors.setLeftVoltage(Volts.of(motorData.targetLeftVoltage));
-    motors.setRightVoltage(Volts.of(motorData.targetRightVoltage));
+    motors.setLeftVoltage(Volts.of(voltages.right));
+    motors.setRightVoltage(Volts.of(voltages.left));
 
-    motorData.leftVelocity = motors.getLeftVelocity().in(MetersPerSecond);
-    motorData.rightVelocity = motors.getRightVelocity().in(MetersPerSecond);
-    motorData.angularVelocity = motors.getAngularVelocity().in(DegreesPerSecond);
+    logger.targetLeftVoltage = voltages.left;
+    logger.targetRightVoltage = voltages.right;
 
     motors.updatePose(PERIOD);
 
-    motorData.pose = getPose();
-    motorData.field.setRobotPose(motorData.pose);
+    logger.leftVelocity = motors.getLeftVelocity().in(MetersPerSecond);
+    logger.rightVelocity = motors.getRightVelocity().in(MetersPerSecond);
+    logger.angularVelocity = motors.getAngularVelocity().in(DegreesPerSecond);
+
+    logger.pose = getPose();
+    logger.field.setRobotPose(logger.pose);
   }
 }

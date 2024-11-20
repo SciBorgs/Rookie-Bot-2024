@@ -1,4 +1,4 @@
-package org.sciborgs1155.robot.tankdrive;
+package org.sciborgs1155.robot.drivetrain;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
@@ -7,14 +7,14 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.MOMENT_OF_INERTIA;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.REDUCTION;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.ROBOT_MASS;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.STANDARD_MEASUREMENT_DEVIATIONS;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.STARTING_POSE;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.TRACK_WIDTH;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.WHEEL_RADIUS;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.clampVoltage;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.MOMENT_OF_INERTIA;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.REDUCTION;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.ROBOT_MASS;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.STANDARD_MEASUREMENT_DEVIATIONS;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.STARTING_POSE;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.TRACK_WIDTH;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.WHEEL_RADIUS;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.clampVoltage;
 
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.geometry.Pose2d;

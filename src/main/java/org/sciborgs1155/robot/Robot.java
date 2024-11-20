@@ -19,7 +19,7 @@ import org.littletonrobotics.urcl.URCL;
 import org.sciborgs1155.lib.CommandRobot;
 import org.sciborgs1155.lib.FaultLogger;
 import org.sciborgs1155.robot.Ports.OI;
-import org.sciborgs1155.robot.tankdrive.DiffDrive;
+import org.sciborgs1155.robot.drivetrain.DiffDrive;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -34,7 +34,6 @@ public class Robot extends CommandRobot implements Logged {
   private final CommandXboxController operator = new CommandXboxController(OI.OPERATOR);
 
   /** Controls drivetrain */
-  @SuppressWarnings("unused")
   private final CommandXboxController driver = new CommandXboxController(OI.DRIVER);
 
   private final DiffDrive drivetrain = DiffDrive.create(isSimulation());
@@ -48,26 +47,21 @@ public class Robot extends CommandRobot implements Logged {
   /** Configures basic behavior during different parts of the game. */
   private void configureGameBehavior() {
     DataLogManager.start();
-    System.out.println("Started DataLogManager!");
 
     Monologue.setupMonologue(this, "/Robot", false, true);
     addPeriodic(Monologue::updateAll, PERIOD.in(Seconds));
-    System.out.println("Setup Monologue!");
 
     FaultLogger.setupLogging();
     FaultLogger.onFailing(fault -> Commands.print(fault.toString()));
     addPeriodic(FaultLogger::update, PERIOD.in(Seconds));
-    System.out.println("Setup Fault Logger!");
 
     addPeriodic(drivetrain::updateVoltages, PERIOD.in(Seconds));
 
     if (!isReal()) {
       DriverStation.silenceJoystickConnectionWarning(true);
-      System.out.println("Silenced Joystick Connection Warnings!");
     }
     if (isReal()) {
       URCL.start();
-      System.out.println("Enabled URCL!");
     }
   }
 
@@ -87,7 +81,7 @@ public class Robot extends CommandRobot implements Logged {
 
     return Commands.sequence(
             Commands.print("Enabled Teleop Mode!"),
-            drivetrain.inputArcade(() -> -driver.getLeftY(), () -> -driver.getLeftX()).repeatedly())
+            drivetrain.inputArcade(() -> driver.getLeftY(), () -> driver.getRightX()))
         .withName("Teleop Command")
         .finallyDo(() -> System.out.println("Disabled Teleop Mode!"));
   }
@@ -96,7 +90,9 @@ public class Robot extends CommandRobot implements Logged {
   private Command testCommand() {
     CommandScheduler.getInstance().cancelAll();
 
-    return Commands.sequence(Commands.print("Enabled Test Mode!"))
+    return Commands.sequence(
+            Commands.print("Enabled Test Mode!"),
+            drivetrain.inputTank(() -> driver.getLeftY(), () -> driver.getRightY()))
         .withName("Test Command")
         .finallyDo(() -> System.out.println("Disabled Test Mode!"));
   }

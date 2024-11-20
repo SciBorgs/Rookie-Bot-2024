@@ -1,13 +1,13 @@
-package org.sciborgs1155.robot.tankdrive;
+package org.sciborgs1155.robot.drivetrain;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.STARTING_POSE;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.clampVoltage;
-import static org.sciborgs1155.robot.tankdrive.DriveConstants.distanceToAngle;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.STARTING_POSE;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.clampVoltage;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.distanceToAngle;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -49,8 +49,8 @@ public class SparkDiffDrive implements DiffDriveIO {
 
   @Override
   public Measure<Voltage> setLeftVoltage(Measure<Voltage> voltage) {
-    frontRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
-    rearRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
+    // This leads the 'rearRightMotor', so we do not have to set both
+    frontLeftMotor.setVoltage(clampVoltage(voltage).in(Volts));
 
     return voltage;
   }
@@ -81,8 +81,8 @@ public class SparkDiffDrive implements DiffDriveIO {
 
   @Override
   public Measure<Voltage> setRightVoltage(Measure<Voltage> voltage) {
+    // This leads the 'rearRightMotor', so we do not have to set both
     frontRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
-    rearRightMotor.setVoltage(clampVoltage(voltage).in(Volts));
 
     return voltage;
   }
@@ -145,6 +145,9 @@ public class SparkDiffDrive implements DiffDriveIO {
     this.rearLeftMotor.burnFlash();
     this.frontRightMotor.burnFlash();
     this.rearRightMotor.burnFlash();
+
+    this.rearLeftMotor.follow(frontLeftMotor);
+    this.rearRightMotor.follow(frontRightMotor);
 
     FaultLogger.register(frontLeftMotor);
     FaultLogger.register(rearLeftMotor);

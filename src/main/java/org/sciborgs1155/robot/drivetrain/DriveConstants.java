@@ -1,4 +1,4 @@
-package org.sciborgs1155.robot.tankdrive;
+package org.sciborgs1155.robot.drivetrain;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;

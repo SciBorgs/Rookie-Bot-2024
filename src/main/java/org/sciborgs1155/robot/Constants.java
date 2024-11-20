@@ -18,7 +18,4 @@ import edu.wpi.first.units.Units;
 public class Constants {
   /** Roborio Tick Rate */
   public static final Measure<Time> PERIOD = Seconds.of(0.02);
-
-  /** Returns whether the robot is real or not */
-  public static final boolean robotIsReal = Robot.isReal();
 }
