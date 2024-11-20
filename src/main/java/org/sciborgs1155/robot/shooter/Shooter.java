@@ -56,7 +56,7 @@ public class Shooter extends SubsystemBase implements Logged {
    * @return a command for turning on the shooter.
    */
   public Command shoot() {
-    return run(() -> setSpeed(WHEEL_VELOCITY));
+    return setSpeed(WHEEL_VELOCITY);
   }
 
   /**
@@ -65,7 +65,7 @@ public class Shooter extends SubsystemBase implements Logged {
    * @return a command for stopping the shooter.
    */
   public Command stop() {
-    return run(() -> setSpeed(0));
+    return setSpeed(0);
   }
 
   /**
@@ -73,14 +73,11 @@ public class Shooter extends SubsystemBase implements Logged {
    *
    * @param target The target speed of the top wheel.
    */
-  private Command setTopSpeed(double target) {
-    return run(
-        () -> {
-          double prevTop = pidTop.getSetpoint();
-          top.setVoltage(
-              pidTop.calculate(top.getVelocity(), target)
-                  + ffTop.calculate(target, (target - prevTop) / Constants.PERIOD.in(Seconds)));
-        });
+  private void setTopSpeed(double target) {
+      double prevTop = pidTop.getSetpoint();
+      top.setVoltage(
+          pidTop.calculate(top.getVelocity(), target)
+              + ffTop.calculate(target, (target - prevTop) / Constants.PERIOD.in(Seconds)));
   }
 
   /**
@@ -88,15 +85,12 @@ public class Shooter extends SubsystemBase implements Logged {
    *
    * @param target The target speed of the bottom wheel.
    */
-  private Command setBottomSpeed(double target) {
-    return run(
-        () -> {
-          double prevBottom = pidBottom.getSetpoint();
-          top.setVoltage(
-              pidBottom.calculate(bottom.getVelocity(), target)
-                  + ffBottom.calculate(
-                      target, (target - prevBottom) / Constants.PERIOD.in(Seconds)));
-        });
+  private void setBottomSpeed(double target) {
+    double prevBottom = pidBottom.getSetpoint();  
+    bottom.setVoltage(
+        pidBottom.calculate(bottom.getVelocity(), target)
+            + ffBottom.calculate(
+                target, (target - prevBottom) / Constants.PERIOD.in(Seconds)));
   }
 
   /**
@@ -104,8 +98,15 @@ public class Shooter extends SubsystemBase implements Logged {
    *
    * @param Target The target speed of the wheels.
    */
-  private Command setSpeed(double Target) {
-    return run(() -> setTopSpeed(Target).deadlineWith(setBottomSpeed(Target)));
+  private Command setSpeed(double topTarget, double bottomTarget) {
+    return run(() -> {   
+      setTopSpeed(topTarget);
+      setBottomSpeed(bottomTarget);
+    });
+  }
+
+  private Command setSpeed(double target) {
+    return setSpeed(target, target);
   }
 
   /**
@@ -126,5 +127,15 @@ public class Shooter extends SubsystemBase implements Logged {
   @Log.NT
   public double bottomVelocity() {
     return bottom.getVelocity();
+  }
+
+  @Log.NT
+  public double topTarget() {
+    return pidTop.getSetpoint();
+  }
+
+  @Log.NT
+  public double bottomTarget() {
+    return pidBottom.getSetpoint();
   }
 }

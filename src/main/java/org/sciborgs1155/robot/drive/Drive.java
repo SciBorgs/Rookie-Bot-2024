@@ -154,34 +154,6 @@ public class Drive extends SubsystemBase implements Logged, AutoCloseable {
   }
 
   /**
-   * Drives the robot based on a {@link InputStream} for field relative x y and omega velocities.
-   *
-   * @param vx A supplier for the velocity of the robot along the x axis (perpendicular to the
-   *     alliance side).
-   * @param vy A supplier for the velocity of the robot along the y axis (parallel to the alliance
-   *     side).
-   * @param heading A supplier for the field relative heading of the robot.
-   * @return The driving command.
-   */
-  public Command drive(InputStream vx, InputStream vy, Supplier<Rotation2d> heading) {
-    var pid =
-        new ProfiledPIDController(
-            Rotation.P,
-            Rotation.I,
-            Rotation.D,
-            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCEL));
-
-    return run(
-        () ->
-            driveFieldRelative(
-                new ChassisSpeeds(
-                    vx.get(),
-                    vy.get(),
-                    pid.calculate(
-                        getPose().getRotation().getRadians(), heading.get().getRadians()))));
-  }
-
-  /**
    * Drives the robot relative to field based on provided {@link ChassisSpeeds} and current heading.
    *
    * @param speeds The desired field relative chassis speeds.

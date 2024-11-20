@@ -105,6 +105,8 @@ public class Robot extends CommandRobot implements Logged {
     autonomous().whileTrue(new ProxyCommand(autos::get));
     FaultLogger.onFailing(f -> Commands.print(f.toString()));
 
+    operator.a().onTrue(shooter.shoot());
+
     driver
         .leftBumper()
         .or(driver.rightBumper())
