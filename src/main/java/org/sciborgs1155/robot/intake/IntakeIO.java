@@ -13,6 +13,7 @@ public interface IntakeIO {
 
   /**
    * Sets the voltage of the wrist.
+   *
    * @param volts
    */
   public void setWristVoltage(double volts);

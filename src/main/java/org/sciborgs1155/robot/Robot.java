@@ -9,6 +9,7 @@ import org.sciborgs1155.robot.commands.Autos;
 import org.sciborgs1155.robot.drive.Drive;
 import org.sciborgs1155.robot.drive.DriveConstants;
 import org.sciborgs1155.robot.intake.Intake;
+import org.sciborgs1155.robot.roller.Roller;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
@@ -39,6 +40,7 @@ public class Robot extends CommandRobot implements Logged {
   // SUBSYSTEMS
   private final Drive drive = Drive.create();
   private final Intake intake = Intake.create();
+  private final Roller roller = Roller.create();
 
   // COMMANDS
   @Log.NT private final Autos autos = new Autos();
@@ -99,7 +101,9 @@ public class Robot extends CommandRobot implements Logged {
                 DriveConstants.MAX_ANGULAR_SPEED.in(RadiansPerSecond),
                 DriveConstants.MAX_ANGULAR_ACCEL.in(RadiansPerSecond.per(Second)))));
 
+    roller.setDefaultCommand(roller.stopRoller());
 
+    intake.setDefaultCommand(intake.raiseWrist());
   }
 
   /** Configures trigger -> command bindings */
@@ -112,5 +116,8 @@ public class Robot extends CommandRobot implements Logged {
         .or(driver.rightBumper())
         .onTrue(Commands.runOnce(() -> speedMultiplier = Constants.FULL_SPEED))
         .onFalse(Commands.run(() -> speedMultiplier = Constants.SLOW_SPEED));
+
+    driver.a().whileTrue(roller.roller().deadlineWith(intake.lowerWrist()));
+
   }
 }

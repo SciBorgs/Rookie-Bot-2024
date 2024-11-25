@@ -7,25 +7,24 @@ import com.revrobotics.CANSparkMax;
 
 public class RealRoller implements RollerIO {
 
-    private final CANSparkMax roller;
+  private final CANSparkMax roller;
 
-    /**
-     * Constructor to create a real roller
-     */
-    public RealRoller() {
-        roller = new CANSparkMax(ROLLER_MOTOR, MotorType.kBrushless);
-        roller.restoreFactoryDefaults();
-        roller.setSmartCurrentLimit(30);
+  /** Constructor to create a real roller */
+  public RealRoller() {
+    roller = new CANSparkMax(ROLLER_MOTOR, MotorType.kBrushless);
+    roller.restoreFactoryDefaults();
+    roller.setSmartCurrentLimit(30);
 
-        roller.burnFlash();
-    }
+    roller.burnFlash();
+  }
 
-    /**
-     * sets the speed of the roller.
-     * @param volts The volts applied to the roller.
-     */
-    @Override
-    public void setRoller(double voltage) {
-        roller.setVoltage(voltage);
-    }
+  /**
+   * sets the speed of the roller.
+   *
+   * @param volts The volts applied to the roller.
+   */
+  @Override
+  public void setRoller(double voltage) {
+    roller.setVoltage(voltage);
+  }
 }

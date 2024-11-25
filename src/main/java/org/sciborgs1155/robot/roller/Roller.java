@@ -10,43 +10,62 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Roller extends SubsystemBase {
 
-    private final RollerIO hardware;
-    public static final double ROLLER_MAX = .4;
-    public static final double ROLLER_REVERSE = -.05;
-/**
- * Creates a Roller (Constructor).
- * @param hardware
- */
-    private Roller(RollerIO hardware) {
-        this.hardware = hardware;
-    }
+  private final RollerIO hardware;
+  public static final double ROLLER_MAX = .4;
+  public static final double ROLLER_REVERSE = -.05;
 
-    /**
-     * Creates a real intake or a no intake.
-     * @return The constructor for a real or no intake.
-     */
-    public static Roller create() {
-        return isReal() ? new Roller(new RealRoller()) : new Roller(new NoRoller());
-    }
+  /**
+   * Creates a Roller (Constructor).
+   *
+   * @param hardware
+   */
+  private Roller(RollerIO hardware) {
+    this.hardware = hardware;
+  }
 
-    /**
-     * A command that sets the the roller.
-     * @param voltage Voltage applied to the roller.
-     * @return A command that sets the the roller.
-     */
-    private Command setRoller(double voltage) {
-        return run(() -> hardware.setRoller(voltage));
-    }
+  /**
+   * Creates a real intake or a no intake.
+   *
+   * @return The constructor for a real or no intake.
+   */
+  public static Roller create() {
+    return isReal() ? new Roller(new RealRoller()) : new Roller(new NoRoller());
+  }
 
-    public Command roller() {
-        return setRoller(ROLLER_MAX);
-    }
+  /**
+   * A command that sets the the roller.
+   *
+   * @param voltage Voltage applied to the roller.
+   * @return A command that sets the the roller.
+   */
+  private Command setRoller(double voltage) {
+    return run(() -> hardware.setRoller(voltage));
+  }
 
-    public Command stopRoller() {
-        return setRoller(0);
-    }
+  /**
+   * Runs the roller to intake a gamepiece.
+   *
+   * @return A command to set roller to max speed.
+   */
+  public Command roller() {
+    return setRoller(ROLLER_MAX);
+  }
 
-    public Command reverseRoller() {
-        return setRoller(ROLLER_REVERSE);
-    }
+  /**
+   * A command to stop the roller.
+   *
+   * @return A command to stop the roller motor.
+   */
+  public Command stopRoller() {
+    return setRoller(0);
+  }
+
+  /**
+   * A command to reverse the roller.
+   *
+   * @return A command to reverse the roller motor.
+   */
+  public Command reverseRoller() {
+    return setRoller(ROLLER_REVERSE);
+  }
 }
