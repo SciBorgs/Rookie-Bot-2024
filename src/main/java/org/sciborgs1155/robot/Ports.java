@@ -19,7 +19,7 @@ public final class Ports {
   }
 
   public static final class Wheels {
-    public static final int TOP_MOTOR = -1;
-    public static final int BOTTOM_MOTOR = -1;
+    public static final int TOP_WHEEL = 18;
+    public static final int BOTTOM_WHEEL = 19;
   }
 }

@@ -4,7 +4,6 @@ import static edu.wpi.first.units.Units.*;
 import static org.sciborgs1155.robot.Ports.Drive.*;
 import static org.sciborgs1155.robot.drive.DriveConstants.*;
 
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,7 +12,6 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -23,7 +21,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import java.util.List;
-import java.util.function.Supplier;
 import monologue.Annotations.IgnoreLogged;
 import monologue.Annotations.Log;
 import monologue.Logged;
@@ -151,34 +148,6 @@ public class Drive extends SubsystemBase implements Logged, AutoCloseable {
    */
   public Command drive(InputStream vx, InputStream vy, InputStream vOmega) {
     return run(() -> driveFieldRelative(new ChassisSpeeds(vx.get(), vy.get(), vOmega.get())));
-  }
-
-  /**
-   * Drives the robot based on a {@link InputStream} for field relative x y and omega velocities.
-   *
-   * @param vx A supplier for the velocity of the robot along the x axis (perpendicular to the
-   *     alliance side).
-   * @param vy A supplier for the velocity of the robot along the y axis (parallel to the alliance
-   *     side).
-   * @param heading A supplier for the field relative heading of the robot.
-   * @return The driving command.
-   */
-  public Command drive(InputStream vx, InputStream vy, Supplier<Rotation2d> heading) {
-    var pid =
-        new ProfiledPIDController(
-            Rotation.P,
-            Rotation.I,
-            Rotation.D,
-            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCEL));
-
-    return run(
-        () ->
-            driveFieldRelative(
-                new ChassisSpeeds(
-                    vx.get(),
-                    vy.get(),
-                    pid.calculate(
-                        getPose().getRotation().getRadians(), heading.get().getRadians()))));
   }
 
   /**

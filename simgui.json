@@ -30,6 +30,9 @@
     },
     "windows": {
       "/Robot/drive/field2d": {
+        "bottom": 1476,
+        "height": 8.210550308227539,
+        "left": 150,
         "module- FL": {
           "style": "Line"
         },
@@ -42,6 +45,9 @@
         "module-RL": {
           "style": "Line"
         },
+        "right": 2961,
+        "top": 79,
+        "width": 16.541748046875,
         "window": {
           "visible": true
         }
@@ -80,12 +86,13 @@
                 "open": true
               },
               "open": true
-            },
-            "open": true
-          },
-          "open": true
+            }
+          }
         },
-        "open": true
+        "open": true,
+        "shooter": {
+          "open": true
+        }
       },
       "Shuffleboard": {
         "open": true
@@ -94,5 +101,40 @@
   },
   "NetworkTables Info": {
     "visible": true
+  },
+  "Plot": {
+    "Plot <0>": {
+      "plots": [
+        {
+          "backgroundColor": [
+            0.0,
+            0.0,
+            0.0,
+            0.8500000238418579
+          ],
+          "height": 347,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/Robot/shooter/bottomVelocity"
+            },
+            {
+              "color": [
+                0.8666667342185974,
+                0.5176470875740051,
+                0.32156863808631897,
+                1.0
+              ],
+              "id": "NT:/Robot/shooter/bottomTarget"
+            }
+          ]
+        }
+      ]
+    }
   }
 }
