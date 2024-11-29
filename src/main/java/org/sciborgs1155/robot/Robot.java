@@ -72,6 +72,9 @@ public class Robot extends CommandRobot implements Logged {
     autonomous().onTrue(autonomousCommand());
     disabled().onTrue(disabledCommand());
 
+    driver.leftTrigger().onTrue(drivetrain.switchSpeedMultiplier());
+    driver.rightTrigger().onTrue(drivetrain.switchSpeedMultiplier());
+
     System.out.println("Configured Command Bindings!");
   }
 

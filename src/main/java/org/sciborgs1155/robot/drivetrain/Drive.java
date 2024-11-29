@@ -68,13 +68,17 @@ public class Drive extends SubsystemBase implements Logged {
   }
 
   /** Changes the voltage scale factor to either 'FULL_SPEED' or 'SLOW_SPEED' */
-  public void switchSpeedMultiplier() {
-    if (speedMultiplier == FULL_SPEED) {
-      speedMultiplier = SLOW_SPEED;
-    }
-    if (speedMultiplier == SLOW_SPEED) {
-      speedMultiplier = FULL_SPEED;
-    }
+  public Command switchSpeedMultiplier() {
+    return runOnce(
+            () -> {
+              if (speedMultiplier == FULL_SPEED) {
+                speedMultiplier = SLOW_SPEED;
+              }
+              if (speedMultiplier == SLOW_SPEED) {
+                speedMultiplier = FULL_SPEED;
+              }
+            })
+        .withName("Switch Speed Multiplier : " + speedMultiplier);
   }
 
   /**
