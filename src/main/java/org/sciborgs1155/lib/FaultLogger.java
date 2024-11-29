@@ -3,6 +3,7 @@ package org.sciborgs1155.lib;
 import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkBase.FaultID;
 import com.revrobotics.REVLibError;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -176,6 +177,38 @@ public final class FaultLogger {
   }
 
   /**
+   * Reports REVLibErrors from a spark.
+   *
+   * <p>This should be called immediately after any call to the spark.
+   *
+   * @param spark The spark to report REVLibErrors from.
+   * @return If the spark is working without errors.
+   */
+  public static boolean check(CANSparkBase spark) {
+    REVLibError error = spark.getLastError();
+    return check(spark, error);
+  }
+
+  /**
+   * Reports REVLibErrors from a spark.
+   *
+   * <p>This should be called immediately after any call to the spark.
+   *
+   * @param spark The spark to report REVLibErrors from.
+   * @param error Any REVLibErrors that may be returned from a method for a spark.
+   * @return If the spark is working without errors.
+   */
+  public static boolean check(CANSparkBase spark, REVLibError error) {
+
+    if (error != REVLibError.kOk) {
+      DriverStation.reportError(
+          "Error in CANSparkBase " + spark.getDeviceId() + ": " + error.name(), false);
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * Registers fallible suppliers for a duty cycle encoder.
    *
    * @param encoder The duty cycle encoder to manage.
@@ -185,5 +218,18 @@ public final class FaultLogger {
         () -> !encoder.isConnected(),
         String.format("DutyCycleEncoder [%d]: Disconnected"),
         FaultType.ERROR);
+  }
+
+  /**
+   * Reports a fault.
+   *
+   * @param fault The fault to report.
+   */
+  public static void report(Fault fault) {
+    switch (fault.type) {
+      case ERROR -> DriverStation.reportError(fault.toString(), false);
+      case WARNING -> DriverStation.reportWarning(fault.toString(), false);
+      case INFO -> System.out.println(fault.toString());
+    }
   }
 }

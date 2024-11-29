@@ -19,7 +19,7 @@ import org.littletonrobotics.urcl.URCL;
 import org.sciborgs1155.lib.CommandRobot;
 import org.sciborgs1155.lib.FaultLogger;
 import org.sciborgs1155.robot.Ports.OI;
-import org.sciborgs1155.robot.drivetrain.DiffDrive;
+import org.sciborgs1155.robot.drivetrain.Drive;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -36,7 +36,7 @@ public class Robot extends CommandRobot implements Logged {
   /** Controls drivetrain */
   private final CommandXboxController driver = new CommandXboxController(OI.DRIVER);
 
-  private final DiffDrive drivetrain = DiffDrive.create(isSimulation());
+  private final Drive drivetrain = Drive.create(isSimulation());
 
   /** The robot contains subsystems, OI devices, and commands. */
   public Robot() {
@@ -81,7 +81,7 @@ public class Robot extends CommandRobot implements Logged {
 
     return Commands.sequence(
             Commands.print("Enabled Teleop Mode!"),
-            drivetrain.inputArcade(() -> driver.getLeftY(), () -> driver.getRightX()))
+            drivetrain.inputArcade(() -> -driver.getLeftY(), () -> driver.getLeftX()))
         .withName("Teleop Command")
         .finallyDo(() -> System.out.println("Disabled Teleop Mode!"));
   }
