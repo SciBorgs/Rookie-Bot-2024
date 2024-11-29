@@ -5,12 +5,15 @@ import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.pathplanner.lib.util.PIDConstants;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Mass;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
+import org.sciborgs1155.lib.FFDConstants;
 
 /** Constants for differential drivetrain */
 public final class DriveConstants {
@@ -47,4 +50,13 @@ public final class DriveConstants {
   /** Initial position of the robot(fed into odometry classes) */
   public static final Pose2d STARTING_POSE =
       new Pose2d(Meters.of(5), Meters.of(5), Rotation2d.fromDegrees(0));
+
+  /** Motion Profile constraints for the 'driveDistance' command */
+  public static final Constraints driveDistanceConstraints = new Constraints(15, 1);
+
+  /** PID constants for the 'driveDistance' command */
+  public static final PIDConstants driveDistancePID = new PIDConstants(1, 0, 0);
+
+  /** FFD constants for the 'driveDistance' command */
+  public static final FFDConstants driveDistanceFFD = new FFDConstants(0, 1, 0);
 }
