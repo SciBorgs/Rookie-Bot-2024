@@ -26,11 +26,12 @@ public class SparkDrive implements DriveIO {
   private RelativeEncoder rearRightEncoder;
 
   /** We don't have a gyro, so this has to be used with an estimated rotation */
-  private final DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(STARTING_POSE.getRotation(), 0, 0,
-      STARTING_POSE);
+  private final DifferentialDriveOdometry odometry =
+      new DifferentialDriveOdometry(STARTING_POSE.getRotation(), 0, 0, STARTING_POSE);
 
   /** Displacements of wheels at last odometry update */
-  private final DifferentialDriveWheelPositions previousWheelDisplacements = new DifferentialDriveWheelPositions(0, 0);
+  private final DifferentialDriveWheelPositions previousWheelDisplacements =
+      new DifferentialDriveWheelPositions(0, 0);
 
   /** Angular velocity of the drivetrain(DegreesPerSecond) */
   private double angularVelocity = 0;
@@ -92,13 +93,15 @@ public class SparkDrive implements DriveIO {
   @Override
   public void updatePose(double deltaTimeSeconds) {
     // The displacement since last odometry update(as opposed to in total)
-    double[] deltaDisplacementsMeters = new double[] {
-        getLeftDisplacement() - previousWheelDisplacements.leftMeters,
-        getRightDisplacement() - previousWheelDisplacements.rightMeters
-    };
+    double[] deltaDisplacementsMeters =
+        new double[] {
+          getLeftDisplacement() - previousWheelDisplacements.leftMeters,
+          getRightDisplacement() - previousWheelDisplacements.rightMeters
+        };
 
     // difference in displacement can be used to find a difference in orientation
-    double deltaRotationDegrees = distanceToAngle(deltaDisplacementsMeters[1] - deltaDisplacementsMeters[0]);
+    double deltaRotationDegrees =
+        distanceToAngle(deltaDisplacementsMeters[1] - deltaDisplacementsMeters[0]);
 
     // old rotation + delta rotation = new rotation
     double newRotation = getPose().getRotation().getDegrees() + deltaRotationDegrees;

@@ -22,32 +22,32 @@ import monologue.Annotations.Log;
 /** Simulated {@link DriveIO} class using 4 NEOs */
 public class SimDrive implements DriveIO {
   /** Simulated drivetrain with 4 NEO motors */
-  private final DifferentialDrivetrainSim simulation = new DifferentialDrivetrainSim(
-      DCMotor.getNEO(2),
-      REDUCTION,
-      MOI.in(Kilograms),
-      ROBOT_MASS.in(Kilograms),
-      WHEEL_RADIUS.in(Meters),
-      TRACK_WIDTH.in(Meters),
-      VecBuilder.fill(0.00, 0.00, 0.00, 0., 0., 0.00, 0.00)); // Assume sim is 100% accurate
+  private final DifferentialDrivetrainSim simulation =
+      new DifferentialDrivetrainSim(
+          DCMotor.getNEO(2),
+          REDUCTION,
+          MOI.in(Kilograms),
+          ROBOT_MASS.in(Kilograms),
+          WHEEL_RADIUS.in(Meters),
+          TRACK_WIDTH.in(Meters),
+          VecBuilder.fill(0.00, 0.00, 0.00, 0., 0., 0.00, 0.00)); // Assume sim is 100% accurate
 
   /**
-   * Current Left and Right voltages of the drivetrain (since both have to be
-   * updated at once in the 'updatePose' method). These values are updated using
-   * the set[Left/Right]Voltage' methods
+   * Current Left and Right voltages of the drivetrain (since both have to be updated at once in the
+   * 'updatePose' method). These values are updated using the set[Left/Right]Voltage' methods
    */
   private final DifferentialDriveWheelVoltages voltages = new DifferentialDriveWheelVoltages(0, 0);
 
   /**
-   * Displacements of wheels at last odometry update. Similiar usage to the one in
-   * {@link SparkDrive}. Used for testing the odometry method in
-   * {@link SparkDrive}
+   * Displacements of wheels at last odometry update. Similiar usage to the one in {@link
+   * SparkDrive}. Used for testing the odometry method in {@link SparkDrive}
    */
-  private final DifferentialDriveWheelPositions previousWheelDisplacements = new DifferentialDriveWheelPositions(0, 0);
+  private final DifferentialDriveWheelPositions previousWheelDisplacements =
+      new DifferentialDriveWheelPositions(0, 0);
 
   /** Used for testing the 'updateOdometry' method found in {@link SparkDrive} */
-  private final DifferentialDriveOdometry odometry = new DifferentialDriveOdometry(STARTING_POSE.getRotation(), 0, 0,
-      STARTING_POSE);
+  private final DifferentialDriveOdometry odometry =
+      new DifferentialDriveOdometry(STARTING_POSE.getRotation(), 0, 0, STARTING_POSE);
 
   /** Angular velocity of the drivetrain(DegreesPerSecond) */
   private double angularVelocity = 0;
@@ -71,8 +71,7 @@ public class SimDrive implements DriveIO {
 
   /** NOTE: you can't reset sim encoders (This method does absolutely nothing) */
   @Override
-  public void resetLeftEncoder() {
-  }
+  public void resetLeftEncoder() {}
 
   @Override
   public void setRightVoltage(double volts) {
@@ -93,8 +92,7 @@ public class SimDrive implements DriveIO {
 
   /** NOTE: you can't reset sim encoders (This method does absolutely nothing) */
   @Override
-  public void resetRightEncoder() {
-  }
+  public void resetRightEncoder() {}
 
   @Override
   @Log.NT
@@ -104,19 +102,20 @@ public class SimDrive implements DriveIO {
 
   /** NOTE: you can't reset sim encoders (This method does absolutely nothing) */
   @Override
-  public void resetEncoders() {
-  }
+  public void resetEncoders() {}
 
   /** Used for testing the 'updateOdometry' method found in {@link SparkDrive} */
   public void updateOdometry(double deltaTimeSeconds) {
     // The displacement since last odometry update(as opposed to in total)
-    double[] deltaDisplacementsMeters = new double[] {
-        getLeftDisplacement() - previousWheelDisplacements.leftMeters,
-        getRightDisplacement() - previousWheelDisplacements.rightMeters
-    };
+    double[] deltaDisplacementsMeters =
+        new double[] {
+          getLeftDisplacement() - previousWheelDisplacements.leftMeters,
+          getRightDisplacement() - previousWheelDisplacements.rightMeters
+        };
 
     // difference in displacement can be used to find a difference in orientation
-    double deltaRotationDegrees = distanceToAngle(deltaDisplacementsMeters[1] - deltaDisplacementsMeters[0]);
+    double deltaRotationDegrees =
+        distanceToAngle(deltaDisplacementsMeters[1] - deltaDisplacementsMeters[0]);
 
     // old rotation + delta rotation = new rotation
     double newRotation = getPose().getRotation().getDegrees() + deltaRotationDegrees;

@@ -54,8 +54,8 @@ public interface DriveIO extends Logged {
   public void updatePose(double deltaTimeSeconds);
 
   /**
-   * If voltage magnitude is greater than maximum voltage, decreases voltage
-   * magnitude so the motors don't explode (voltage is in volts)
+   * If voltage magnitude is greater than maximum voltage, decreases voltage magnitude so the motors
+   * don't explode (voltage is in volts)
    */
   default double clampVoltage(double volts) {
     if (Math.abs(volts) > MAX_VOLTAGE.in(Volts)) {
@@ -65,8 +65,7 @@ public interface DriveIO extends Logged {
   }
 
   /**
-   * Converts linear displacement of motors(Meters) to angular displacement of
-   * drivetrain(Degrees)
+   * Converts linear displacement of motors(Meters) to angular displacement of drivetrain(Degrees)
    */
   default double distanceToAngle(double meters) {
     return meters / WHEEL_BASE.times(Math.PI).divide(360).in(Meters);

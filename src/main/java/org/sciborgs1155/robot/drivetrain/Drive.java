@@ -3,9 +3,13 @@ package org.sciborgs1155.robot.drivetrain;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 import static org.sciborgs1155.robot.Constants.PERIOD;
+import static org.sciborgs1155.robot.Ports.Drive.FRONT_LEFT_DRIVE;
+import static org.sciborgs1155.robot.Ports.Drive.FRONT_RIGHT_DRIVE;
+import static org.sciborgs1155.robot.Ports.Drive.REAR_LEFT_DRIVE;
+import static org.sciborgs1155.robot.Ports.Drive.REAR_RIGHT_DRIVE;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.DEADBAND;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.FULL_SPEED;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.MAX_VOLTAGE;
-import static org.sciborgs1155.robot.drivetrain.DriveConstants.MOTOR_IDS;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.SLOW_SPEED;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -21,33 +25,30 @@ import org.sciborgs1155.robot.Robot;
 /** Differential drivetrain subsystem */
 public class Drive extends SubsystemBase implements Logged {
   /** Hardware interface */
-  @Log.NT
-  private DriveIO hardware;
+  @Log.NT private DriveIO hardware;
 
   /** Scales voltage output */
-  @Log.NT
-  private double speedMultiplier = FULL_SPEED;
+  @Log.NT private double speedMultiplier = FULL_SPEED;
 
   /** Voltage setpoint of the left side(Volts) */
-  @Log.NT
-  private double leftVoltage = 0;
+  @Log.NT private double leftVoltage = 0;
 
   /** Voltage setpoint of the right side(Volts) */
-  @Log.NT
-  private double rightVoltage = 0;
+  @Log.NT private double rightVoltage = 0;
 
   /**
-   * Updates votages in the 'leftVoltage' and 'rightVoltage' fields (to be used
-   * with joysticks , inputs range from 0 to 1)
+   * Updates votages in the 'leftVoltage' and 'rightVoltage' fields (to be used with joysticks ,
+   * inputs range from 0 to 1)
    */
-  private final DifferentialDrive inputHandler = new DifferentialDrive(
-      (leftVoltageInput) -> leftVoltage = leftVoltageInput,
-      (rightVoltageInput) -> rightVoltage = rightVoltageInput);
+  private final DifferentialDrive inputHandler =
+      new DifferentialDrive(
+          (leftVoltageInput) -> leftVoltage = leftVoltageInput,
+          (rightVoltageInput) -> rightVoltage = rightVoltageInput);
 
   /**
    * Updates the power of the motors based on joystick input(Tank Drive)
    *
-   * @param leftInput  : Speed, from [-1.0,1.0]
+   * @param leftInput : Speed, from [-1.0,1.0]
    * @param rightInput : Speed, from [-1.0,1.0]
    */
   public Command inputTank(DoubleSupplier leftInput, DoubleSupplier rightInput) {
@@ -58,7 +59,7 @@ public class Drive extends SubsystemBase implements Logged {
   /**
    * Updates the power of the motors based on joystick input(Arcade Drive)
    *
-   * @param drive    : Speed, from [-1.0,1.0]
+   * @param drive : Speed, from [-1.0,1.0]
    * @param rotation : Speed, from [-1.0,1.0]
    */
   public Command inputArcade(DoubleSupplier drive, DoubleSupplier rotation) {
@@ -78,22 +79,23 @@ public class Drive extends SubsystemBase implements Logged {
 
   /**
    * Instantiate a new {@link Drive} subsystem
-   * 
+   *
    * @param isSimulated : Whether to use simulated motors or SparkMaxes
    */
   public static Drive create(boolean isSimulated) {
     if (!isSimulated)
-      return new Drive(new SparkDrive(MOTOR_IDS));
+      return new Drive(
+          new SparkDrive(
+              new int[] {FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE, FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE}));
 
-    if (isSimulated)
-      return new Drive(new SimDrive());
+    if (isSimulated) return new Drive(new SimDrive());
 
     return null;
   }
 
   /**
-   * Instantiate a new {@link Drive} subsystem with {@link NoDrive} hardware
-   * interface(to be used as a placeholder)
+   * Instantiate a new {@link Drive} subsystem with {@link NoDrive} hardware interface(to be used as
+   * a placeholder)
    */
   public static Drive createPlaceholder() {
     return new Drive(new NoDrive());
@@ -101,7 +103,10 @@ public class Drive extends SubsystemBase implements Logged {
 
   private Drive(DriveIO hardwareInterface) {
     hardware = hardwareInterface;
+
     inputHandler.setMaxOutput(MAX_VOLTAGE.in(Volts));
+    inputHandler.setDeadband(DEADBAND);
+
     resetDefaultCommand();
 
     // Disables safety warnings on simulated drivetrain.
@@ -114,9 +119,9 @@ public class Drive extends SubsystemBase implements Logged {
   public void resetDefaultCommand() {
     setDefaultCommand(
         runOnce(
-            () -> {
-              inputHandler.tankDrive(0, 0);
-            })
+                () -> {
+                  inputHandler.tankDrive(0, 0);
+                })
             .andThen(Commands.idle(this)));
   }
 
