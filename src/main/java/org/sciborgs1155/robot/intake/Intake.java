@@ -25,9 +25,11 @@ import monologue.Logged;
 public class Intake extends SubsystemBase implements Logged {
   private final IntakeIO hardware;
 
+  @Log.NT
   private final ProfiledPIDController wristController =
       new ProfiledPIDController(
           WRIST_P, WRIST_I, WRIST_D, new TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCEL));
+
   private final ArmFeedforward wristFeedforward;
 
   /**
