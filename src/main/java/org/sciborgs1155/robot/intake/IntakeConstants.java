@@ -1,12 +1,5 @@
 package org.sciborgs1155.robot.intake;
 
-import static org.sciborgs1155.robot.intake.IntakeConstants.MAX_ANGLE;
-
-import edu.wpi.first.units.Angle;
-import edu.wpi.first.units.Distance;
-import edu.wpi.first.units.Mass;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Mult;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Kilograms;
@@ -15,6 +8,13 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
+import static org.sciborgs1155.robot.intake.IntakeConstants.MAX_ANGLE;
+
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Mass;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Mult;
 import edu.wpi.first.units.Velocity;
 import monologue.Logged;
 
@@ -26,15 +26,13 @@ public class IntakeConstants implements Logged {
 
   public static final double WRIST_D = 10;
 
-
-
   public static final double WRIST_DOWN = 0;
 
   /**
    * The factors by which encoder measurements are different from actual motor rotation; default
    * units.
    */
-  public static final double MOTOR_GEARING = 4/1;
+  public static final double MOTOR_GEARING = 4 / 1;
 
   /** The arm's moment of inertia; resistance to rotational movement. */
   public static final Measure<Mult<Mult<Distance, Distance>, Mass>> MOI =
@@ -54,7 +52,7 @@ public class IntakeConstants implements Logged {
   public static final Measure<Angle> MIN_ANGLE = Degrees.of(0);
   public static final Measure<Angle> MAX_ANGLE = Degrees.of(99.5);
 
-    public static final double WRIST_UP = MAX_ANGLE.in(Radians);
+  public static final double WRIST_UP = MAX_ANGLE.in(Radians);
 
   public static final double kS = 0.14296;
   public static final double kV = 1.7305;

@@ -1,5 +1,19 @@
 package org.sciborgs1155.robot;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous;
+
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import monologue.Annotations.Log;
+import monologue.Logged;
+import monologue.Monologue;
 import org.littletonrobotics.urcl.URCL;
 import org.sciborgs1155.lib.CommandRobot;
 import org.sciborgs1155.lib.FaultLogger;
@@ -10,20 +24,6 @@ import org.sciborgs1155.robot.drive.Drive;
 import org.sciborgs1155.robot.drive.DriveConstants;
 import org.sciborgs1155.robot.intake.Intake;
 import org.sciborgs1155.robot.roller.Roller;
-
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Second;
-import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ProxyCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous;
-import monologue.Annotations.Log;
-import monologue.Logged;
-import monologue.Monologue;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -118,6 +118,5 @@ public class Robot extends CommandRobot implements Logged {
         .onFalse(Commands.run(() -> speedMultiplier = Constants.SLOW_SPEED));
 
     driver.a().whileTrue(roller.roller().deadlineWith(intake.lowerWrist()));
-
   }
 }

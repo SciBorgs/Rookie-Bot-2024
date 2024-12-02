@@ -1,5 +1,6 @@
 package org.sciborgs1155.robot.intake;
 
+import static edu.wpi.first.units.Units.Radians;
 import static org.sciborgs1155.robot.Constants.isReal;
 import static org.sciborgs1155.robot.intake.IntakeConstants.MAX_ACCEL;
 import static org.sciborgs1155.robot.intake.IntakeConstants.MAX_VELOCITY;
@@ -16,7 +17,6 @@ import static org.sciborgs1155.robot.intake.IntakeConstants.kV;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import static edu.wpi.first.units.Units.Radians;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import monologue.Annotations.Log;
@@ -66,15 +66,12 @@ public class Intake extends SubsystemBase implements Logged {
    */
   private void updatePosition(double setpoint) {
     double PIDOutput = wristController.calculate(hardware.getPosition(), setpoint);
-    double FFOutput =
-        wristFeedforward.calculate(
-            hardware.getPosition(), hardware.getVelocity());
+    double FFOutput = wristFeedforward.calculate(hardware.getPosition(), hardware.getVelocity());
     hardware.setWristVoltage(PIDOutput + FFOutput);
   }
 
   @Log.NT
-
-  public double position(){
+  public double position() {
     return hardware.getPosition();
   }
 
@@ -105,5 +102,4 @@ public class Intake extends SubsystemBase implements Logged {
   public Command lowerWrist() {
     return run(() -> updatePosition(WRIST_DOWN));
   }
-
 }
