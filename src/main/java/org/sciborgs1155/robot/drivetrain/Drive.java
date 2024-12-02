@@ -11,8 +11,12 @@ import static org.sciborgs1155.robot.drivetrain.DriveConstants.DEADBAND;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.FULL_SPEED;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.MAX_VOLTAGE;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.SLOW_SPEED;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.driveConstants;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.rotateConstants;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -20,30 +24,34 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 import monologue.Annotations.Log;
 import monologue.Logged;
+import org.sciborgs1155.lib.MotorClosedLoopController;
 import org.sciborgs1155.robot.Robot;
 
 /** Differential drivetrain subsystem */
 public class Drive extends SubsystemBase implements Logged {
   /** Hardware interface */
-  @Log.NT private DriveIO hardware;
+  @Log.NT private final DriveIO hardware;
 
   /** Scales voltage output */
-  @Log.NT private double speedMultiplier = FULL_SPEED;
+  @Log.NT private double speedMultiplier;
 
   /** Voltage setpoint of the left side(Volts) */
-  @Log.NT private double leftVoltage = 0;
+  @Log.NT private double leftVoltage;
 
   /** Voltage setpoint of the right side(Volts) */
-  @Log.NT private double rightVoltage = 0;
+  @Log.NT private double rightVoltage;
+
+  /** Closed loop controller for 'driveDistance' command */
+  @Log.NT private final MotorClosedLoopController driveDistanceController;
+
+  /** Closed loop controller for 'rotateAngle' command */
+  @Log.NT private final MotorClosedLoopController rotateAngleController;
 
   /**
    * Updates votages in the 'leftVoltage' and 'rightVoltage' fields (to be used with joysticks ,
    * inputs range from 0 to 1)
    */
-  private final DifferentialDrive inputHandler =
-      new DifferentialDrive(
-          (leftVoltageInput) -> leftVoltage = leftVoltageInput,
-          (rightVoltageInput) -> rightVoltage = rightVoltageInput);
+  private final DifferentialDrive inputHandler;
 
   /**
    * Updates the power of the motors based on joystick input(Tank Drive)
@@ -65,6 +73,57 @@ public class Drive extends SubsystemBase implements Logged {
   public Command inputArcade(DoubleSupplier drive, DoubleSupplier rotation) {
     return run(() -> inputHandler.arcadeDrive(drive.getAsDouble(), rotation.getAsDouble()))
         .withName("inputArcade(" + drive.getAsDouble() + "," + rotation.getAsDouble() + ")");
+  }
+
+  /** Drives a certain distance linearly using closed-loop-feedback(Meters) */
+  public Command driveDistance(double distance) {
+    return runOnce(
+            () -> {
+              driveDistanceController.initialize(distance, hardware.getRightDisplacement());
+              driveDistanceController.setGoalPose(
+                  getPose().plus(new Transform2d(distance, 0, new Rotation2d())));
+            })
+        .andThen(
+            run(() -> {
+                  double outputVoltage =
+                      driveDistanceController.getOutput(
+                          hardware.getRightDisplacement() - driveDistanceController.getInitial());
+
+                  leftVoltage = outputVoltage;
+                  rightVoltage = outputVoltage;
+                })
+                .until(driveDistanceController::isDone)
+                .finallyDo(
+                    () -> {
+                      driveDistanceController.reset();
+                    }))
+        .withName("driveDistance(" + distance + "m)");
+  }
+
+  /** Rotates a certain angle using closed-loop-feedback(Degrees) */
+  public Command rotateAngle(double angle) {
+    return runOnce(
+            () -> {
+              rotateAngleController.initialize(angle, getPose().getRotation().getDegrees());
+              rotateAngleController.setGoalPose(
+                  getPose().plus(new Transform2d(0, 0, Rotation2d.fromDegrees(angle))));
+            })
+        .andThen(
+            run(() -> {
+                  double outputVoltage =
+                      rotateAngleController.getOutput(
+                          getPose().getRotation().getDegrees()
+                              - rotateAngleController.getInitial());
+
+                  leftVoltage = outputVoltage;
+                  rightVoltage = -outputVoltage;
+                })
+                .until(rotateAngleController::isDone)
+                .finallyDo(
+                    () -> {
+                      rotateAngleController.reset();
+                    }))
+        .withName("rotateAngle(" + angle + "°)");
   }
 
   /** Changes the voltage scale factor to either 'FULL_SPEED' or 'SLOW_SPEED' */
@@ -107,9 +166,21 @@ public class Drive extends SubsystemBase implements Logged {
 
   private Drive(DriveIO hardwareInterface) {
     hardware = hardwareInterface;
+    driveDistanceController = new MotorClosedLoopController(driveConstants);
+    rotateAngleController = new MotorClosedLoopController(rotateConstants);
+
+    inputHandler =
+        new DifferentialDrive(
+            (leftVoltageInput) -> leftVoltage = leftVoltageInput,
+            (rightVoltageInput) -> rightVoltage = rightVoltageInput);
 
     inputHandler.setMaxOutput(MAX_VOLTAGE.in(Volts));
     inputHandler.setDeadband(DEADBAND);
+
+    leftVoltage = 0;
+    rightVoltage = 0;
+
+    speedMultiplier = FULL_SPEED;
 
     resetDefaultCommand();
 

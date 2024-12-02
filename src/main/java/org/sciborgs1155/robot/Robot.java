@@ -104,7 +104,12 @@ public class Robot extends CommandRobot implements Logged {
   private Command autonomousCommand() {
     CommandScheduler.getInstance().cancelAll();
 
-    return Commands.sequence(Commands.print("Enabled Autonomous Mode!"))
+    return Commands.sequence(
+            Commands.print("Enabled Autonomous Mode!"),
+            drivetrain.rotateAngle(90),
+            drivetrain.rotateAngle(90),
+            drivetrain.rotateAngle(90),
+            drivetrain.rotateAngle(90))
         .withName("Autonomous Command")
         .finallyDo(() -> System.out.println("Disabled Autonomous Mode!"));
   }

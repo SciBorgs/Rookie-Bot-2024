@@ -1,8 +1,6 @@
 package org.sciborgs1155.robot;
 
-import static org.sciborgs1155.robot.drivetrain.DriveConstants.driveDistanceConstraints;
-import static org.sciborgs1155.robot.drivetrain.DriveConstants.driveDistanceFFD;
-import static org.sciborgs1155.robot.drivetrain.DriveConstants.driveDistancePID;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.driveConstants;
 
 import org.junit.jupiter.api.Test;
 import org.sciborgs1155.lib.MotorClosedLoopController;
@@ -29,13 +27,17 @@ public class DriveTest {
     final double starting = 0;
     final double goal = 20;
 
-    MotorClosedLoopController controller = new MotorClosedLoopController(driveDistancePID, driveDistanceFFD,
-        driveDistanceConstraints, 0.2, 0.1);
+    MotorClosedLoopController controller = new MotorClosedLoopController(driveConstants);
 
-    controller.setGoal(goal, starting);
+    controller.initialize(goal, starting);
     while (tick < maxticks) {
-      System.out.println("Error: " + controller.getError() + " Measure: " + measure + " Output: "
-          + controller.getOutput(measure));
+      System.out.println(
+          "Error: "
+              + controller.getError()
+              + " Measure: "
+              + measure
+              + " Output: "
+              + controller.getOutput(measure));
       measure += controller.getOutput(measure);
       tick++;
     }

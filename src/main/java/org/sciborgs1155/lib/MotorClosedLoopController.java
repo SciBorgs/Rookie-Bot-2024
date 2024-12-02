@@ -3,10 +3,11 @@ package org.sciborgs1155.lib;
 import static edu.wpi.first.units.Units.Seconds;
 import static org.sciborgs1155.robot.Constants.PERIOD;
 
-import com.pathplanner.lib.util.PIDConstants;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import monologue.Annotations.Log;
 import monologue.Logged;
 
@@ -23,21 +24,23 @@ public class MotorClosedLoopController implements Logged {
   private SimpleMotorFeedforward ffdController;
   private ProfiledPIDController pidController;
 
-  public MotorClosedLoopController(
-      PIDConstants pidConstants,
-      FFDConstants ffdConstants,
-      Constraints constraints,
-      double positionTolerance,
-      double velocityTolerance) {
+  @Log.NT private Pose2d goalPose;
+
+  public MotorClosedLoopController(MotorClosedLoopConstants constants) {
     pidController =
         new ProfiledPIDController(
-            pidConstants.kP, pidConstants.kI, pidConstants.kD, constraints, PERIOD.in(Seconds));
-    pidController.setIZone(pidConstants.iZone);
-    pidController.setTolerance(positionTolerance, velocityTolerance);
+            constants.kP,
+            constants.kI,
+            constants.kD,
+            new Constraints(constants.maxVelocity, constants.maxAcceleration),
+            PERIOD.in(Seconds));
+    pidController.setIZone(constants.iZone);
+    pidController.setTolerance(constants.positionTolerance, constants.velocityTolerance);
 
-    ffdController = new SimpleMotorFeedforward(ffdConstants.kS, ffdConstants.kV, ffdConstants.kA);
+    ffdController = new SimpleMotorFeedforward(constants.kS, constants.kV, constants.kA);
   }
 
+  /** Re-instantiates the pidController and all fields(except measurement) */
   public void reset() {
     pidController =
         new ProfiledPIDController(
@@ -49,28 +52,51 @@ public class MotorClosedLoopController implements Logged {
     pidController.setIZone(pidController.getIZone());
     pidController.setTolerance(
         pidController.getPositionTolerance(), pidController.getVelocityTolerance());
+
+    goal = 0;
+    initial = 0;
+    error = 0;
+    pidOutput = 0;
+    ffdOutput = 0;
+    finalOutput = 0;
+    measurement = 0;
+    goalPose = new Pose2d();
   }
 
-  public void setGoal(double goal, double initial) {
+  /** Sets the goal of the pidController and the initial value */
+  public void initialize(double goal, double initial) {
     this.initial = initial;
     this.goal = goal;
-    this.pidController.setGoal(goal);
+    this.pidController.setGoal(new State(goal, 0));
   }
 
+  /** Sets the logged 'goalPose' parameter, for visualization */
+  public void setGoalPose(Pose2d pose) {
+    goalPose = pose;
+  }
+
+  /** Averages PID and FFD outputs and returns(based on measurement and 'setGoal') */
   public double getOutput(double measurement) {
     this.measurement = measurement;
+    this.error = goal - measurement;
     this.pidOutput = pidController.calculate(measurement);
     this.ffdOutput = ffdController.calculate(pidController.getSetpoint().velocity);
     this.finalOutput = (pidOutput + ffdOutput) / 2;
     return finalOutput;
   }
 
+  /** Whether position and velocity are within tolerance */
   public boolean isDone() {
     return this.pidController.atGoal();
   }
 
+  /** Goal - measurement */
   public double getError() {
-    this.error = pidController.getPositionError();
     return this.error;
+  }
+
+  /** Specified in 'setGoal' method */
+  public double getInitial() {
+    return this.initial;
   }
 }
