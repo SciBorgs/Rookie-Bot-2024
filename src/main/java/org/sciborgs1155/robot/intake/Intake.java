@@ -3,6 +3,7 @@ package org.sciborgs1155.robot.intake;
 import static org.sciborgs1155.robot.Constants.isReal;
 import static org.sciborgs1155.robot.intake.IntakeConstants.MAX_ACCEL;
 import static org.sciborgs1155.robot.intake.IntakeConstants.MAX_VELOCITY;
+import static org.sciborgs1155.robot.intake.IntakeConstants.STARTING_ANGLE;
 import static org.sciborgs1155.robot.intake.IntakeConstants.WRIST_D;
 import static org.sciborgs1155.robot.intake.IntakeConstants.WRIST_DOWN;
 import static org.sciborgs1155.robot.intake.IntakeConstants.WRIST_I;
@@ -15,6 +16,7 @@ import static org.sciborgs1155.robot.intake.IntakeConstants.kV;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import static edu.wpi.first.units.Units.Radians;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import monologue.Annotations.Log;
@@ -36,7 +38,7 @@ public class Intake extends SubsystemBase implements Logged {
   private Intake(IntakeIO hardware) {
     this.hardware = hardware;
     wristFeedforward = new ArmFeedforward(kS, kG, kV);
-    wristController.setGoal(WRIST_UP);
+    wristController.setGoal(STARTING_ANGLE.in(Radians));
   }
 
   /**
@@ -71,8 +73,14 @@ public class Intake extends SubsystemBase implements Logged {
   }
 
   @Log.NT
+
   public double position(){
     return hardware.getPosition();
+  }
+
+  @Log.NT
+  public double goal() {
+    return wristController.getGoal().position;
   }
 
   @Log.NT

@@ -20,11 +20,11 @@ import monologue.Logged;
 
 public class IntakeConstants implements Logged {
 
-  public static final double WRIST_P = 1;
+  public static final double WRIST_P = 10;
 
   public static final double WRIST_I = 0;
 
-  public static final double WRIST_D = 5;
+  public static final double WRIST_D = 10;
 
 
 
@@ -49,10 +49,10 @@ public class IntakeConstants implements Logged {
   public static final Measure<Velocity<Velocity<Angle>>> MAX_ACCEL =
       RadiansPerSecond.per(Second).of(4);
 
-  public static final Measure<Angle> STARTING_ANGLE = Degrees.of(189.5);
+  public static final Measure<Angle> STARTING_ANGLE = Degrees.of(99.5);
 
   public static final Measure<Angle> MIN_ANGLE = Degrees.of(0);
-  public static final Measure<Angle> MAX_ANGLE = Degrees.of(189.5);
+  public static final Measure<Angle> MAX_ANGLE = Degrees.of(99.5);
 
     public static final double WRIST_UP = MAX_ANGLE.in(Radians);
 

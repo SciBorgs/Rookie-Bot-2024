@@ -50,11 +50,6 @@
         "window": {
           "visible": true
         }
-      },
-      "/SmartDashboard/drive quasistatic forward": {
-        "window": {
-          "visible": true
-        }
       }
     }
   },
@@ -93,9 +88,6 @@
         "open": true
       }
     }
-  },
-  "NetworkTables Info": {
-    "visible": true
   },
   "Plot": {
     "Plot <0>": {
