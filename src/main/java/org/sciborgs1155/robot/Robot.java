@@ -1,9 +1,5 @@
 package org.sciborgs1155.robot;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.wpilibj2.command.button.RobotModeTriggers.autonomous;
 
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -20,8 +16,6 @@ import org.sciborgs1155.lib.FaultLogger;
 import org.sciborgs1155.lib.InputStream;
 import org.sciborgs1155.robot.Ports.OI;
 import org.sciborgs1155.robot.commands.Autos;
-import org.sciborgs1155.robot.drive.Drive;
-import org.sciborgs1155.robot.drive.DriveConstants;
 import org.sciborgs1155.robot.intake.Intake;
 import org.sciborgs1155.robot.roller.Roller;
 
@@ -38,7 +32,6 @@ public class Robot extends CommandRobot implements Logged {
   private final CommandXboxController driver = new CommandXboxController(OI.DRIVER);
 
   // SUBSYSTEMS
-  private final Drive drive = Drive.create();
   private final Intake intake = Intake.create();
   private final Roller roller = Roller.create();
 
@@ -86,21 +79,6 @@ public class Robot extends CommandRobot implements Logged {
    * running on a subsystem.
    */
   private void configureSubsystemDefaults() {
-    drive.setDefaultCommand(
-        drive.drive(
-            createJoystickStream(
-                driver::getLeftX,
-                DriveConstants.MAX_SPEED.in(MetersPerSecond),
-                DriveConstants.MAX_ACCEL.in(MetersPerSecondPerSecond)),
-            createJoystickStream(
-                driver::getLeftY,
-                DriveConstants.MAX_SPEED.in(MetersPerSecond),
-                DriveConstants.MAX_ACCEL.in(MetersPerSecondPerSecond)),
-            createJoystickStream(
-                driver::getRightX,
-                DriveConstants.MAX_ANGULAR_SPEED.in(RadiansPerSecond),
-                DriveConstants.MAX_ANGULAR_ACCEL.in(RadiansPerSecond.per(Second)))));
-
     roller.setDefaultCommand(roller.stopRoller());
 
     intake.setDefaultCommand(intake.raiseWrist());
