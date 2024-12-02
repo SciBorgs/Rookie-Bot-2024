@@ -19,11 +19,14 @@ public class MotorClosedLoopController implements Logged {
 
   @Log.NT private double pidOutput = 0;
   @Log.NT private double ffdOutput = 0;
+
+  /** Average of PID and FFD output sent to motors */
   @Log.NT private double finalOutput = 0;
 
   private SimpleMotorFeedforward ffdController;
   private ProfiledPIDController pidController;
 
+  /** Pose2d of the target pose for the current PID command(for visualization) */
   @Log.NT private Pose2d goalPose;
 
   public MotorClosedLoopController(MotorClosedLoopConstants constants) {
@@ -40,7 +43,7 @@ public class MotorClosedLoopController implements Logged {
     ffdController = new SimpleMotorFeedforward(constants.kS, constants.kV, constants.kA);
   }
 
-  /** Re-instantiates the pidController and all fields(except measurement) */
+  /** Re-instantiates the pidController and all fields */
   public void reset() {
     pidController =
         new ProfiledPIDController(

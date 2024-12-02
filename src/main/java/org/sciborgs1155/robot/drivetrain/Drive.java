@@ -79,12 +79,17 @@ public class Drive extends SubsystemBase implements Logged {
   public Command driveDistance(double distance) {
     return runOnce(
             () -> {
+              // Initialized value serves as a refrence point(measurement starts at 0)
+              // If you are wondering why... I have 0 clue. Motion Profiling was doing weird stuff
+              // when I
+              // just used it normally
               driveDistanceController.initialize(distance, hardware.getRightDisplacement());
               driveDistanceController.setGoalPose(
                   getPose().plus(new Transform2d(distance, 0, new Rotation2d())));
             })
         .andThen(
             run(() -> {
+                  // Measurement is the difference between the initial value and the current value
                   double outputVoltage =
                       driveDistanceController.getOutput(
                           hardware.getRightDisplacement() - driveDistanceController.getInitial());
@@ -104,12 +109,17 @@ public class Drive extends SubsystemBase implements Logged {
   public Command rotateAngle(double angle) {
     return runOnce(
             () -> {
+              // Initialized value serves as a refrence point(measurement starts at 0)
+              // If you are wondering why... I have 0 clue. Motion Profiling was doing weird stuff
+              // when I
+              // just used it normally
               rotateAngleController.initialize(angle, getPose().getRotation().getDegrees());
               rotateAngleController.setGoalPose(
                   getPose().plus(new Transform2d(0, 0, Rotation2d.fromDegrees(angle))));
             })
         .andThen(
             run(() -> {
+                  // Measurement is the difference between the initial value and the current value
                   double outputVoltage =
                       rotateAngleController.getOutput(
                           getPose().getRotation().getDegrees()

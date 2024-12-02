@@ -74,6 +74,9 @@ public class Robot extends CommandRobot implements Logged {
 
     driver.leftTrigger().onTrue(drivetrain.switchSpeedMultiplier());
     driver.rightTrigger().onTrue(drivetrain.switchSpeedMultiplier());
+    driver.a().onTrue(drivetrain.rotateAngle(90));
+    driver.b().onTrue(drivetrain.driveDistance(2));
+    driver.x().onTrue(disabledCommand());
 
     System.out.println("Configured Command Bindings!");
   }
@@ -109,7 +112,9 @@ public class Robot extends CommandRobot implements Logged {
             drivetrain.rotateAngle(90),
             drivetrain.rotateAngle(90),
             drivetrain.rotateAngle(90),
-            drivetrain.rotateAngle(90))
+            drivetrain.rotateAngle(90),
+            drivetrain.driveDistance(1),
+            drivetrain.driveDistance(-1))
         .withName("Autonomous Command")
         .finallyDo(() -> System.out.println("Disabled Autonomous Mode!"));
   }
