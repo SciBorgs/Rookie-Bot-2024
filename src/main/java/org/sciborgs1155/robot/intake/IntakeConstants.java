@@ -1,5 +1,11 @@
 package org.sciborgs1155.robot.intake;
 
+
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Mass;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Mult;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Kilograms;
@@ -8,17 +14,9 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
-import static org.sciborgs1155.robot.intake.IntakeConstants.MAX_ANGLE;
-
-import edu.wpi.first.units.Angle;
-import edu.wpi.first.units.Distance;
-import edu.wpi.first.units.Mass;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Mult;
 import edu.wpi.first.units.Velocity;
-import monologue.Logged;
 
-public class IntakeConstants implements Logged {
+public class IntakeConstants{
 
   public static final double WRIST_P = 10;
 

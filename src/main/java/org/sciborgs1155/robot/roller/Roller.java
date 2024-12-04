@@ -4,6 +4,8 @@
 package org.sciborgs1155.robot.roller;
 
 import static org.sciborgs1155.robot.Constants.isReal;
+import static org.sciborgs1155.robot.roller.RollerConstants.ROLLER_MAX;
+import static org.sciborgs1155.robot.roller.RollerConstants.ROLLER_REVERSE;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -11,8 +13,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Roller extends SubsystemBase {
 
   private final RollerIO hardware;
-  public static final double ROLLER_MAX = .4;
-  public static final double ROLLER_REVERSE = -.05;
+
 
   /**
    * Creates a Roller (Constructor).
@@ -33,10 +34,10 @@ public class Roller extends SubsystemBase {
   }
 
   /**
-   * A command that sets the the roller.
+   * A command that sets the roller.
    *
    * @param voltage Voltage applied to the roller.
-   * @return A command that sets the the roller.
+   * @return A command that sets the roller.
    */
   private Command setRoller(double voltage) {
     return run(() -> hardware.setRoller(voltage));
