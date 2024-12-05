@@ -1,11 +1,8 @@
 package org.sciborgs1155.robot.drivetrain;
 
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Volts;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.MAX_VOLTAGE;
-import static org.sciborgs1155.robot.drivetrain.DriveConstants.WHEEL_BASE;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import monologue.Logged;
 
 /** Hardware interface for the drivetrain */
@@ -34,24 +31,14 @@ public interface DriveIO extends Logged {
   /** Resets displacement measurement of the right side of the drivetrain */
   public void resetRightEncoder();
 
+  /** Specifically for sim(since sim needs an update method) */
+  default void update() {}
+
   /** Resets displacement measurement of both sides of the drivetrain */
   default void resetEncoders() {
     resetLeftEncoder();
     resetRightEncoder();
   }
-
-  /** The angular velocity of the drivetrain(DegreesPerSecond) */
-  public double getAngularVelocity();
-
-  /** The current position of the drivetrain(Meters) */
-  public Pose2d getPose();
-
-  /**
-   * Updates estimated position
-   *
-   * @param deltaTimeSeconds : Time since last odometry update(Seconds)
-   */
-  public void updatePose(double deltaTimeSeconds);
 
   /**
    * If voltage magnitude is greater than maximum voltage, decreases voltage magnitude so the motors
@@ -62,12 +49,5 @@ public interface DriveIO extends Logged {
       return Math.copySign(MAX_VOLTAGE.in(Volts), volts);
     }
     return volts;
-  }
-
-  /**
-   * Converts linear displacement of motors(Meters) to angular displacement of drivetrain(Degrees)
-   */
-  default double distanceToAngle(double meters) {
-    return meters / WHEEL_BASE.times(Math.PI).divide(360).in(Meters);
   }
 }

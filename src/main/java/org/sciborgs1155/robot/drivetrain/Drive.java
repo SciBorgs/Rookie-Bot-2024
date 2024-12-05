@@ -1,5 +1,6 @@
 package org.sciborgs1155.robot.drivetrain;
 
+import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 import static org.sciborgs1155.robot.Constants.PERIOD;
@@ -11,12 +12,16 @@ import static org.sciborgs1155.robot.drivetrain.DriveConstants.DEADBAND;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.FULL_SPEED;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.MAX_VOLTAGE;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.SLOW_SPEED;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.STARTING_POSE;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.TRACK_WIDTH;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.driveConstants;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.rotateConstants;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -46,6 +51,19 @@ public class Drive extends SubsystemBase implements Logged {
 
   /** Closed loop controller for 'rotateAngle' command */
   @Log.NT private final MotorClosedLoopController rotateAngleController;
+
+  /** Logs a visual repreentation of the target position for autonomous commands */
+  @Log.NT private Pose2d autosGoalPose;
+
+  /** We don't have a gyro, so this has to be used with an estimated rotation */
+  private final DifferentialDriveOdometry odometry;
+
+  /** Displacements of wheels at last odometry update */
+  private final DifferentialDriveWheelPositions previousWheelDisplacements;
+
+  @Log.NT
+  /** Angular velocity of the drivetrain(DegreesPerSecond) */
+  private double angularVelocity = 0;
 
   /**
    * Updates votages in the 'leftVoltage' and 'rightVoltage' fields (to be used with joysticks ,
@@ -81,11 +99,9 @@ public class Drive extends SubsystemBase implements Logged {
             () -> {
               // Initialized value serves as a refrence point(measurement starts at 0)
               // If you are wondering why... I have 0 clue. Motion Profiling was doing weird stuff
-              // when I
-              // just used it normally
+              // when I just used it normally
               driveDistanceController.initialize(distance, hardware.getRightDisplacement());
-              driveDistanceController.setGoalPose(
-                  getPose().plus(new Transform2d(distance, 0, new Rotation2d())));
+              autosGoalPose = getPose().plus(new Transform2d(distance, 0, new Rotation2d()));
             })
         .andThen(
             run(() -> {
@@ -111,11 +127,9 @@ public class Drive extends SubsystemBase implements Logged {
             () -> {
               // Initialized value serves as a refrence point(measurement starts at 0)
               // If you are wondering why... I have 0 clue. Motion Profiling was doing weird stuff
-              // when I
-              // just used it normally
+              // when I just used it normally
               rotateAngleController.initialize(angle, getPose().getRotation().getDegrees());
-              rotateAngleController.setGoalPose(
-                  getPose().plus(new Transform2d(0, 0, Rotation2d.fromDegrees(angle))));
+              autosGoalPose = getPose().plus(new Transform2d(0, 0, Rotation2d.fromDegrees(angle)));
             })
         .andThen(
             run(() -> {
@@ -156,21 +170,20 @@ public class Drive extends SubsystemBase implements Logged {
    * @param isSimulated : Whether to use simulated motors or SparkMaxes
    */
   public static Drive create(boolean isSimulated) {
-    if (!isSimulated)
+    if (isSimulated) {
+      return new Drive(new SimDrive());
+    } else {
       return new Drive(
           new SparkDrive(
               new int[] {FRONT_LEFT_DRIVE, REAR_LEFT_DRIVE, FRONT_RIGHT_DRIVE, REAR_RIGHT_DRIVE}));
-
-    if (isSimulated) return new Drive(new SimDrive());
-
-    return null;
+    }
   }
 
   /**
-   * Instantiate a new {@link Drive} subsystem with {@link NoDrive} hardware interface(to be used as
-   * a placeholder)
+   * Instantiate a new {@link Drive} subsystem with {@link NoDrive} hardware interface(does
+   * absolutely nothing)
    */
-  public static Drive createPlaceholder() {
+  public static Drive createDisabledDrivetrain() {
     return new Drive(new NoDrive());
   }
 
@@ -186,6 +199,9 @@ public class Drive extends SubsystemBase implements Logged {
 
     inputHandler.setMaxOutput(MAX_VOLTAGE.in(Volts));
     inputHandler.setDeadband(DEADBAND);
+
+    odometry = new DifferentialDriveOdometry(STARTING_POSE.getRotation(), 0, 0, STARTING_POSE);
+    previousWheelDisplacements = new DifferentialDriveWheelPositions(0, 0);
 
     leftVoltage = 0;
     rightVoltage = 0;
@@ -210,10 +226,41 @@ public class Drive extends SubsystemBase implements Logged {
             .andThen(Commands.idle(this)));
   }
 
-  /** Returns the current position of the drivetrain */
+  /** Returns the current position of the drivetrain(translation in meters) */
   @Log.NT
   public Pose2d getPose() {
-    return hardware.getPose();
+    return odometry.getPoseMeters();
+  }
+
+  /** Used for testing the 'updateOdometry' method found in {@link SparkDrive} */
+  public void updateOdometry(double deltaTimeSeconds) {
+    // The displacement since last odometry update(as opposed to in total)
+    double[] deltaDisplacementsMeters =
+        new double[] {
+          hardware.getLeftDisplacement() - previousWheelDisplacements.leftMeters,
+          hardware.getRightDisplacement() - previousWheelDisplacements.rightMeters
+        };
+
+    // difference in displacement can be used to find a difference in orientation
+    double deltaRotationDegrees =
+        (deltaDisplacementsMeters[1] - deltaDisplacementsMeters[0])
+            / TRACK_WIDTH.times(Math.PI).divide(360).in(Meters);
+
+    // old rotation + delta rotation = new rotation
+    double newRotation = getPose().getRotation().getDegrees() + deltaRotationDegrees;
+
+    // Rotation has to be calculated in order to use 'DifferentialDriveOdometry'
+    odometry.update(
+        Rotation2d.fromDegrees(newRotation),
+        hardware.getLeftDisplacement(),
+        hardware.getRightDisplacement());
+
+    // angular velocity = delta rotation / delta time
+    angularVelocity = deltaRotationDegrees / deltaTimeSeconds;
+
+    // Sets up displacements for next update
+    previousWheelDisplacements.leftMeters = hardware.getLeftDisplacement();
+    previousWheelDisplacements.rightMeters = hardware.getRightDisplacement();
   }
 
   /** Updates motor voltages and odometry(to be called periodically) */
@@ -221,6 +268,7 @@ public class Drive extends SubsystemBase implements Logged {
     hardware.setLeftVoltage(rightVoltage * speedMultiplier);
     hardware.setRightVoltage(leftVoltage * speedMultiplier);
 
-    hardware.updatePose(PERIOD.in(Seconds));
+    updateOdometry(PERIOD.in(Seconds));
+    hardware.update();
   }
 }

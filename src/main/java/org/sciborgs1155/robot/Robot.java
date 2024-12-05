@@ -57,7 +57,7 @@ public class Robot extends CommandRobot implements Logged {
 
     addPeriodic(drivetrain::updateVoltages, PERIOD.in(Seconds));
 
-    if (!isReal()) {
+    if (isSimulation()) {
       DriverStation.silenceJoystickConnectionWarning(true);
     }
     if (isReal()) {

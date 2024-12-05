@@ -11,12 +11,12 @@ import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Mass;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
-import org.sciborgs1155.lib.MotorClosedLoopConstants;
+import org.sciborgs1155.lib.MotorClosedLoopController.MotorClosedLoopConstants;
 
 /** Constants for differential drivetrain */
 public final class DriveConstants {
-  /** Moment of Inertia mass(per meter squared) */
-  public static final Measure<Mass> MOI = Kilograms.of(7.5);
+  /** Moment of Inertia mass(kilograms per meter squared) */
+  public static final double MOI = 7.5;
 
   /** Mass of the robot(not having this javadoc gives me pain) */
   public static final Measure<Mass> ROBOT_MASS = Kilograms.of(60);
@@ -31,7 +31,7 @@ public final class DriveConstants {
   public static final Measure<Distance> WHEEL_RADIUS = Inches.of(3);
 
   /** Gearing reduction ratio */
-  public static final double REDUCTION = 7.21;
+  public static final double GEARING = 7.21;
 
   /** Allows for precision movement */
   public static final double SLOW_SPEED = 0.33;

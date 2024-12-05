@@ -1,7 +1,5 @@
 package org.sciborgs1155.robot.drivetrain;
 
-import edu.wpi.first.math.geometry.Pose2d;
-
 /** Disfunctional Placeholder {@link DriveIO} class */
 public class NoDrive implements DriveIO {
   @Override
@@ -38,17 +36,4 @@ public class NoDrive implements DriveIO {
 
   @Override
   public void resetEncoders() {}
-
-  @Override
-  public Pose2d getPose() {
-    return new Pose2d();
-  }
-
-  @Override
-  public void updatePose(double deltaTime) {}
-
-  @Override
-  public double getAngularVelocity() {
-    return 0;
-  }
 }

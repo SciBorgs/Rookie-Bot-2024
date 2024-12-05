@@ -2,8 +2,8 @@ package org.sciborgs1155.robot.drivetrain;
 
 import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
+import static org.sciborgs1155.robot.drivetrain.DriveConstants.GEARING;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.MOI;
-import static org.sciborgs1155.robot.drivetrain.DriveConstants.REDUCTION;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.ROBOT_MASS;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.STARTING_POSE;
 import static org.sciborgs1155.robot.drivetrain.DriveConstants.TRACK_WIDTH;
@@ -11,11 +11,8 @@ import static org.sciborgs1155.robot.drivetrain.DriveConstants.WHEEL_RADIUS;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
-import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DifferentialDrivetrainSim;
 import monologue.Annotations.Log;
 
@@ -25,8 +22,8 @@ public class SimDrive implements DriveIO {
   private final DifferentialDrivetrainSim simulation =
       new DifferentialDrivetrainSim(
           DCMotor.getNEO(2),
-          REDUCTION,
-          MOI.in(Kilograms),
+          GEARING,
+          MOI,
           ROBOT_MASS.in(Kilograms),
           WHEEL_RADIUS.in(Meters),
           TRACK_WIDTH.in(Meters),
@@ -38,19 +35,12 @@ public class SimDrive implements DriveIO {
    */
   private final DifferentialDriveWheelVoltages voltages = new DifferentialDriveWheelVoltages(0, 0);
 
-  /**
-   * Displacements of wheels at last odometry update. Similiar usage to the one in {@link
-   * SparkDrive}. Used for testing the odometry method in {@link SparkDrive}
-   */
-  private final DifferentialDriveWheelPositions previousWheelDisplacements =
-      new DifferentialDriveWheelPositions(0, 0);
+  /** Last timestamp in whih the simulation was updated(seconds) */
+  private double lastTime = 0;
 
-  /** Used for testing the 'updateOdometry' method found in {@link SparkDrive} */
-  private final DifferentialDriveOdometry odometry =
-      new DifferentialDriveOdometry(STARTING_POSE.getRotation(), 0, 0, STARTING_POSE);
-
-  /** Angular velocity of the drivetrain(DegreesPerSecond) */
-  private double angularVelocity = 0;
+  public SimDrive() {
+    simulation.setPose(STARTING_POSE);
+  }
 
   @Override
   public void setLeftVoltage(double volts) {
@@ -94,63 +84,14 @@ public class SimDrive implements DriveIO {
   @Override
   public void resetRightEncoder() {}
 
-  @Override
-  @Log.NT
-  public double getAngularVelocity() {
-    return angularVelocity;
-  }
-
   /** NOTE: you can't reset sim encoders (This method does absolutely nothing) */
   @Override
   public void resetEncoders() {}
 
-  /** Used for testing the 'updateOdometry' method found in {@link SparkDrive} */
-  public void updateOdometry(double deltaTimeSeconds) {
-    // The displacement since last odometry update(as opposed to in total)
-    double[] deltaDisplacementsMeters =
-        new double[] {
-          getLeftDisplacement() - previousWheelDisplacements.leftMeters,
-          getRightDisplacement() - previousWheelDisplacements.rightMeters
-        };
-
-    // difference in displacement can be used to find a difference in orientation
-    double deltaRotationDegrees =
-        distanceToAngle(deltaDisplacementsMeters[1] - deltaDisplacementsMeters[0]);
-
-    // old rotation + delta rotation = new rotation
-    double newRotation = getPose().getRotation().getDegrees() + deltaRotationDegrees;
-
-    // Rotation has to be calculated in order to use 'DifferentialDriveOdometry'
-    odometry.update(
-        Rotation2d.fromDegrees(newRotation), getLeftDisplacement(), getRightDisplacement());
-
-    // angular velocity = delta rotation / delta time
-    angularVelocity = deltaRotationDegrees / deltaTimeSeconds;
-
-    // Sets up displacements for next update
-    previousWheelDisplacements.leftMeters = getLeftDisplacement();
-    previousWheelDisplacements.rightMeters = getRightDisplacement();
-  }
-
-  /** Used for testing the 'updateOdometry' method found in {@link SparkDrive} */
-  @Log.NT
-  public Pose2d getOdometryPose() {
-    return odometry.getPoseMeters();
-  }
-
   @Override
-  public void updatePose(double deltaTime) {
+  public void update() {
     simulation.setInputs(voltages.left, voltages.right);
-    simulation.update(deltaTime);
-    updateOdometry(deltaTime);
-  }
-
-  @Override
-  public Pose2d getPose() {
-    return simulation.getPose();
-  }
-
-  public SimDrive() {
-    simulation.setPose(STARTING_POSE);
+    simulation.update(Timer.getFPGATimestamp() - lastTime);
+    lastTime = Timer.getFPGATimestamp();
   }
 }
