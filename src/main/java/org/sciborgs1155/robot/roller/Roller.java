@@ -14,7 +14,6 @@ public class Roller extends SubsystemBase {
 
   private final RollerIO hardware;
 
-
   /**
    * Creates a Roller (Constructor).
    *

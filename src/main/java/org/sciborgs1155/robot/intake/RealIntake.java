@@ -1,6 +1,7 @@
 package org.sciborgs1155.robot.intake;
 
 import static org.sciborgs1155.robot.Ports.Intake.WRIST_MOTOR;
+import static org.sciborgs1155.robot.intake.IntakeConstants.MOTOR_GEARING;
 
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
@@ -23,6 +24,7 @@ public class RealIntake implements IntakeIO {
     wrist.setIdleMode(IdleMode.kBrake);
 
     wristEncoder = wrist.getAbsoluteEncoder(Type.kDutyCycle);
+    wristEncoder.setPositionConversionFactor(MOTOR_GEARING);
   }
 
   /**
