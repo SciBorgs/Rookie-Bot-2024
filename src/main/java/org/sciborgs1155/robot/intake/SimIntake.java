@@ -14,7 +14,6 @@ import static org.sciborgs1155.robot.intake.IntakeConstants.STARTING_ANGLE;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class SimIntake implements IntakeIO {
@@ -31,8 +30,6 @@ public class SimIntake implements IntakeIO {
           MAX_ANGLE.in(Radians), // as required by the constructor
           true,
           STARTING_ANGLE.in(Radians));
-
-  private final DCMotorSim rollerSim = new DCMotorSim(DCMotor.getNeoVortex(1), 5, 31);
 
   /**
    * Gets the position of the intake that is simulated
