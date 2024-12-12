@@ -22,4 +22,9 @@ public final class Ports {
     public static final int TOP_MOTOR = -1;
     public static final int BOTTOM_MOTOR = -1;
   }
+
+  public static final class Intake {
+    public static final int ROLLER_MOTOR = 18;
+    public static final int WRIST_MOTOR = 19;
+  }
 }
