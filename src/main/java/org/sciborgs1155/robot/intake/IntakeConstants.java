@@ -1,5 +1,10 @@
 package org.sciborgs1155.robot.intake;
 
+import edu.wpi.first.units.Angle;
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Mass;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Mult;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Kilograms;
@@ -8,12 +13,6 @@ import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
-
-import edu.wpi.first.units.Angle;
-import edu.wpi.first.units.Distance;
-import edu.wpi.first.units.Mass;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Mult;
 import edu.wpi.first.units.Velocity;
 
 public class IntakeConstants {
@@ -39,7 +38,7 @@ public class IntakeConstants {
   public static final Measure<Angle> POSITION_TOLERANCE = Degrees.of(0.8);
 
   public static final Measure<Mass> MASS = Pounds.of(16);
-  public static final Measure<Distance> LENGTH = Inches.of(17.163204);
+  public static final Measure<Distance> LENGTH = Inches.of(17.16320);
 
   public static final Measure<Velocity<Angle>> MAX_VELOCITY = RadiansPerSecond.of(3);
   public static final Measure<Velocity<Velocity<Angle>>> MAX_ACCEL =
